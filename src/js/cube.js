@@ -31,12 +31,18 @@ class Cube {
      * @param {BABYLON.Scene} scene 
      */
     build(scene) {
-        sommets.forEach(sommet => {
+        this.sommets.forEach(sommet => {
             sommet.build(scene);
         });
-        aretes.forEach(arete => {
+        this.aretes.forEach(arete => {
             arete.build(scene);
         });
     }
 
+}
+
+
+// Export
+export {
+    Cube
 }

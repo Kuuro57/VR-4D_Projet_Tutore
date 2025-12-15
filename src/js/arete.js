@@ -1,3 +1,5 @@
+import { Sommet } from "./sommet.js";
+
 /**
  * Classe qui représente une arête d'une forme géométrique 3D
  */
