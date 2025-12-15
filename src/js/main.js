@@ -71,8 +71,14 @@ const createScene = () => {
     ];
 
     // Création du cube
-    var cube = new Cube(sommets, aretes);
-    cube.build(scene);
+    //var cube = new Cube(sommets, aretes);
+    //cube.build(scene);
+
+    let cube = Cube.load('../data/cube.json').then(cube => {
+        cube.build(scene);
+    });
+
+    
 
     return scene;
 

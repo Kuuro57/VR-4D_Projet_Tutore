@@ -1,0 +1,27 @@
+{
+    "name": "Cube",
+    "sommets": [
+        { "name": "s1", "position": {"x":0, "y":0, "z":0} },
+        { "name": "s2", "position": {"x":0, "y":0, "z":1} },
+        { "name": "s3", "position": {"x":0, "y":1, "z":0} },
+        { "name": "s4", "position": {"x":0, "y":1, "z":1} },
+        { "name": "s5", "position": {"x":1, "y":0, "z":0} },
+        { "name": "s6", "position": {"x":1, "y":0, "z":1} },
+        { "name": "s7", "position": {"x":1, "y":1, "z":0} },
+        { "name": "s8", "position": {"x":1, "y":1, "z":1} }
+    ],
+    "aretes": [
+        { "name":"a1","sommet1": "s1", "sommet2": "s2" },
+        { "name":"a2","sommet1": "s1", "sommet2": "s3" },
+        { "name":"a3","sommet1": "s1", "sommet2": "s5" },
+        { "name":"a4","sommet1": "s2", "sommet2": "s4" },
+        { "name":"a5","sommet1": "s2", "sommet2": "s6" },
+        { "name":"a6","sommet1": "s3", "sommet2": "s4" },
+        { "name":"a7","sommet1": "s3", "sommet2": "s7" },
+        { "name":"a8","sommet1": "s4", "sommet2": "s8" },
+        { "name":"a9","sommet1": "s5", "sommet2": "s6" },
+        { "name":"a10","sommet1":"s5", "sommet2": "s7" },
+        { "name":"a11","sommet1":"s6", "sommet2": "s8" },
+        { "name":"a12","sommet1":"s7", "sommet2": "s8" }
+    ]
+}
