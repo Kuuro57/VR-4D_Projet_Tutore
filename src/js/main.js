@@ -1,3 +1,5 @@
+import { Arete } from "./arete.js";
+
 // Récupération du canvas
 const canvas = document.getElementById("renderCanvas");
 
@@ -28,21 +30,8 @@ function createWireCube(scene, name, position) {
   ];
   const carre2 = carre.map(v => v.add(new BABYLON.Vector3(0, 0, 1)));
 
-  // Arêtes verticales
-  const edges = [
-    [new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(0, 0, 1)],
-    [new BABYLON.Vector3(1, 0, 0), new BABYLON.Vector3(1, 0, 1)],
-    [new BABYLON.Vector3(0, 1, 0), new BABYLON.Vector3(0, 1, 1)],
-    [new BABYLON.Vector3(1, 1, 0), new BABYLON.Vector3(1, 1, 1)],
-  ];
-
-  const allPaths = [carre, carre2, ...edges];
-
-  allPaths.forEach((path, i) => {
-    const tube = BABYLON.MeshBuilder.CreateTube(`${name}_tube${i}`, { path, radius: 0.03 }, scene);
-    tube.material = edgesMat;
-    tube.parent = root;
-  });
+  var arrete1 = new Arete("a1", new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(1, 0, 0));
+  arrete1.build(scene);
 
   // Coins (8 sommets)
   const positions = [
