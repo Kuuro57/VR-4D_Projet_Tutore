@@ -12,12 +12,13 @@ html, body {
   display: block; 
 }
 
-/* Base pour tous les boutons (vos IDs) */
+/* Base pour tous les boutons */
 #btn-rotation-x,
 #btn-rotation-y,
 #btn-rotation-z,
-#btn-translation,
-#btn-homothetie {
+#btn-homothetie,
+#translation-panel
+{
   position: absolute;
   left: 12px;
   z-index: 10;
@@ -43,8 +44,9 @@ html, body {
 #btn-rotation-x:hover,
 #btn-rotation-y:hover,
 #btn-rotation-z:hover,
-#btn-translation:hover,
-#btn-homothetie:hover {
+#btn-homothetie:hover,
+.axis button:hover
+{
   background: rgba(40, 40, 48, 0.85);
   border-color: rgba(255,255,255,0.28);
   transform: translateY(-1px);
@@ -53,7 +55,6 @@ html, body {
 #btn-rotation-x:active,
 #btn-rotation-y:active,
 #btn-rotation-z:active,
-#btn-translation:active,
 #btn-homothetie:active {
   transform: translateY(0);
   box-shadow: 0 6px 16px rgba(0,0,0,0.22);
@@ -62,7 +63,6 @@ html, body {
 #btn-rotation-x:focus-visible,
 #btn-rotation-y:focus-visible,
 #btn-rotation-z:focus-visible,
-#btn-translation:focus-visible,
 #btn-homothetie:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px rgba(100, 150, 255, 0.5), 0 10px 25px rgba(0,0,0,0.25);
@@ -72,15 +72,14 @@ html, body {
 #btn-rotation-x { top: 12px; }
 #btn-rotation-y { top: 56px; }
 #btn-rotation-z { top: 100px; }
-#btn-translation { top: 144px; }
-#btn-homothetie  { top: 188px; }
+#btn-homothetie  { top: 294px; }
+#translation-panel { top: 144px; }
 
 /* Mobile : un peu plus grand + meilleure zone de clic */
 @media (max-width: 600px) {
   #btn-rotation-x,
   #btn-rotation-y,
   #btn-rotation-z,
-  #btn-translation,
   #btn-homothetie {
     left: 10px;
     font-size: 15px;
@@ -91,6 +90,35 @@ html, body {
   #btn-rotation-x { top: 10px; }
   #btn-rotation-y { top: 56px; }
   #btn-rotation-z { top: 102px; }
-  #btn-translation { top: 148px; }
   #btn-homothetie  { top: 194px; }
 }
+
+#translation-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.axis {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.axis span {
+  width: 16px;
+  color: #fff;
+  font-weight: bold;
+}
+
+.axis button {
+  appearance: none;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(40, 40, 48, 0.85);
+  color: white;
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
