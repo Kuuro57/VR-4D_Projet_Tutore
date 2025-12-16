@@ -110,6 +110,18 @@ class Forme {
         });
     }
 
+    /**
+     * Met à jour la forme (points et arêtes) dans l'espace 3D
+     */
+    update() {
+        this.sommets.forEach(sommet => {
+            sommet.update();
+        });
+        this.aretes.forEach(arete => {
+            arete.update();
+        });
+    }
+
 }
 
 //Export

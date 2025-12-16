@@ -1,4 +1,5 @@
 import { Forme } from "./forme.js";
+import { rotation3D } from "./transformations/rotations.js";
 
 // Récupération du canvas
 const canvas = document.getElementById("renderCanvas");
@@ -49,7 +50,9 @@ const createScene = () => {
     let cube = Forme.loadCubeFromCenter("CubeCenter", new BABYLON.Vector3(0,0,0), 1);
     cube.build(scene);
 
-     return scene;
+    rotation3D(cube, "x", 45);
+
+    return scene;
 
 };
 

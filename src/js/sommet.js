@@ -14,6 +14,13 @@ class Sommet {
     vector;
 
     /**
+     * @type {*} ???
+     */
+    mesh;
+
+
+
+    /**
      * Constructeur de la classe Sommet
      * @param {String} n Nom du sommet
      * @param {BABYLON.Vector3} v Position du sommet
@@ -23,6 +30,8 @@ class Sommet {
         this.name = n;
     }
 
+
+
     /**
      * Méthode qui construit le sommet dans la scène
      * @param {BABYLON.Scene} scene
@@ -31,19 +40,27 @@ class Sommet {
         const redMat = new BABYLON.StandardMaterial("redMat", scene);
         redMat.diffuseColor = BABYLON.Color3.Red();
 
-        const sphere = BABYLON.MeshBuilder.CreateSphere(`sphere${name}`, { diameter: 0.2, segments: 32 }, scene);
+        const sphere = BABYLON.MeshBuilder.CreateSphere(`sphere${this.name}`, { diameter: 0.2, segments: 32 }, scene);
         sphere.position.set(this.vector.x, this.vector.y, this.vector.z);
         sphere.material = redMat;
+
+        this.mesh = sphere;
     }
 
+
+
     /**
-     * Méthode qui retourne la position du sommet
-     * @returns {BABYLON.Vector3} Position du sommet
+     * Met à jour la position du sommet dans l'espace 3D
      */
-    getVector() {
-        return this.vector;
+    update() {
+        if (this.mesh == null) return;
+
+        this.mesh.position.copyFrom(this.vector);
     }
+
 }
+
+
 
 // Export de la classe
 export {

@@ -23,6 +23,11 @@ class Arete {
      */
     sommet2;
 
+    /**
+     * @type {*} ???
+     */
+    mesh;
+
 
 
     /**
@@ -51,7 +56,7 @@ class Arete {
 
         // Options d'affichage de l'arête
         var options = {
-            path: [this.sommet1.getVector(), this.sommet2.getVector()],
+            path: [this.sommet1.vector, this.sommet2.vector],
             updatable: true,
             radius: 0.03
         }
@@ -60,6 +65,18 @@ class Arete {
         const tube = BABYLON.MeshBuilder.CreateTube(`${this.name}_tube`, options, scene);
         tube.material = edgesMat;
 
+        this.mesh = tube;
+
+    }
+
+    /**
+     * Met à jour la position de l'arête dans l'espace 3D
+     */
+    update() {
+        if (this.mesh == null) return;
+
+        const path = [this.sommet1.vector, this.sommet2.vector];
+        BABYLON.MeshBuilder.CreateTube(this.name, { path, instance: this.mesh });
     }
 
 }
