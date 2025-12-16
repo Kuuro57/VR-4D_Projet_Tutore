@@ -86,8 +86,8 @@ function bindTranslationButton(id, axis, dir) {
   btn.addEventListener("touchend", () => stopTranslation(axis, dir));
 }
 
-bindTranslationButton("tx-plus", "x", "-");
-bindTranslationButton("tx-minus", "x", "+");
+bindTranslationButton("tx-plus", "x", "+");
+bindTranslationButton("tx-minus", "x", "-");
 bindTranslationButton("ty-plus", "y", "+");
 bindTranslationButton("ty-minus", "y", "-");
 bindTranslationButton("tz-plus", "z", "+");
