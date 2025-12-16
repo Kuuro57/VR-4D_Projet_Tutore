@@ -2,9 +2,9 @@ import { Sommet } from "./sommet.js";
 import { Arete } from "./arete.js";
 
 /**
- * Classe représentant un cube en 3D
+ * Classe représentant une forme en 3D
  */
-class Cube {
+class Forme {
 
 
     /**
@@ -25,7 +25,7 @@ class Cube {
     aretes;
 
     /**
-     * Constructeur du cube
+     * Constructeur de la forme
      * @param {String} nom
      * @param {Sommet[]} sommetsParameters 
      * @param {Arete[]} aretesParameters 
@@ -37,11 +37,11 @@ class Cube {
     }
 
     /**
-     * Constructeur du cube à partir d'un fichier json
+     * Constructeur de la forme à partir d'un fichier json
      * @param {String} fichierData 
      */
     static load(fichierData) {
-        let cube = fetch(fichierData).then(response => response.json()).then(data => {
+        let forme = fetch(fichierData).then(response => response.json()).then(data => {
             let name = data.name;
             let sommets = data.sommets.map(s => new Sommet(s.name, new BABYLON.Vector3(s.position.x, s.position.y, s.position.z)));
             let aretes = data.aretes.map(a => {
@@ -49,15 +49,15 @@ class Cube {
                 const sommet2 = sommets.find(s => s.name === a.sommet2);
                 return new Arete(a.name, sommet1, sommet2);
             });
-            return new Cube(name, sommets, aretes);
+            return new Forme(name, sommets, aretes);
         });
 
-        return cube;
+        return forme;
         
     }
 
     /**
-     * Methode d'affichage du cube dans la scène
+     * Methode d'affichage de la forme dans la scène
      * @param {BABYLON.Scene} scene 
      */
     build(scene) {
@@ -73,5 +73,5 @@ class Cube {
 
 //Export
 export { 
-    Cube 
+    Forme 
 };
