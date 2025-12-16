@@ -3,7 +3,7 @@ import {Forme} from "../forme.js";
 /**
  * Matrice de rotation sur l'axe X avec un angle donné
  * @param {Number} angle Angle (en radiant)
- * @returns Liste de liste représentant la matrice de rotation
+ * @returns Liste de liste représentant la matrice de rotation homogène
  */
 var matriceRotationX = (angle) => {
     var matrix = [
@@ -23,7 +23,7 @@ var matriceRotationX = (angle) => {
 /**
  * Matrice de rotation sur l'axe Y avec un angle donné
  * @param {Number} angle Angle (en radiant)
- * @returns Liste de liste représentant la matrice de rotation
+ * @returns Liste de liste représentant la matrice de rotation homogène
  */
 var matriceRotationY = (angle) => {
     var matrix = [
@@ -43,7 +43,7 @@ var matriceRotationY = (angle) => {
 /**
  * Matrice de rotation sur l'axe Z avec un angle donné
  * @param {Number} angle Angle (en radiant)
- * @returns Liste de liste représentant la matrice de rotation
+ * @returns Liste de liste représentant la matrice de rotation homogène
  */
 var matriceRotationZ = (angle) => {
     var matrix = [
@@ -83,6 +83,7 @@ function rotation3D (forme, axe, angle) {
 
     forme.sommets.forEach(sommet => {
         
+        // On applique la rotation avec la matrice de rotation correspondante
         var vectorSommet = sommet.vector;
         var matrixSommet = BABYLON.Matrix.FromArray([
             [vectorSommet.x],
@@ -96,6 +97,7 @@ function rotation3D (forme, axe, angle) {
 
     });
 
+    // Mise à jour de la forme dans l'espace 3D
     forme.update();
 
 }
