@@ -1,4 +1,4 @@
-import { Cube } from "./cube.js";
+import { Forme } from "./forme.js";
 
 // Récupération du canvas
 const canvas = document.getElementById("renderCanvas");
@@ -41,7 +41,7 @@ const createScene = () => {
     initCamera(scene);
 
     // Chargement du cube depuis le fichier JSON
-    let cube = Cube.load('../data/cube.json').then(cube => {
+    let cube = Forme.load('../data/cube.json').then(cube => {
         cube.build(scene);
     });
 
