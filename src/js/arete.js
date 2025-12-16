@@ -28,6 +28,9 @@ class Arete {
      */
     mesh;
 
+    radius = 0.03;
+    scene = null;
+
 
 
     /**
@@ -58,7 +61,7 @@ class Arete {
         var options = {
             path: [this.sommet1.vector, this.sommet2.vector],
             updatable: true,
-            radius: 0.03
+            radius: this.radius
         }
 
         // Construction de l'arête sur la scène Babylon
@@ -76,7 +79,7 @@ class Arete {
         if (this.mesh == null) return;
 
         const path = [this.sommet1.vector, this.sommet2.vector];
-        BABYLON.MeshBuilder.CreateTube(this.name, { path, instance: this.mesh });
+        BABYLON.MeshBuilder.CreateTube(this.name, { path, instance: this.mesh, radius: this.radius }, this.scene);
     }
 
 }
