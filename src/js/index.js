@@ -92,9 +92,9 @@ function startHomothetie(direction) {
     if (!forme3D) return;
 
     idIntervalHomothetie = setInterval(() => {
-      let factor = direction === "+" ? 1.1 : 0.9;
+      let factor = direction === "+" ? 1.01 : 0.99;
         homothetie3D(forme3D, factor);
-    }, 100);
+    }, 16);
 }
 
 function stopHomothetie() {
