@@ -53,7 +53,48 @@ class Forme {
         });
 
         return forme;
-        
+    }
+
+    /**
+     * méthode statique qui permet de créer une forme de cube à partir du centre, de la taille et du nom
+     * 
+     * @param {String} name nom du cube
+     * @param {BABYLON.Vector3} vector coordonnées du centre du cube
+     * @param {Number} size  taille du cube
+     * @returns 
+     */
+    static loadCubeFromCenter(name,vector,size) {
+        const halfSize = size / 2;
+        const sommets = [
+            new Sommet("A", new BABYLON.Vector3(vector.x - halfSize, vector.y - halfSize, vector.z - halfSize)),
+            new Sommet("B", new BABYLON.Vector3(vector.x + halfSize, vector.y - halfSize, vector.z - halfSize)),
+            new Sommet("C", new BABYLON.Vector3(vector.x + halfSize, vector.y + halfSize, vector.z - halfSize)),
+            new Sommet("D", new BABYLON.Vector3(vector.x - halfSize, vector.y + halfSize, vector.z - halfSize)),
+            new Sommet("E", new BABYLON.Vector3(vector.x - halfSize, vector.y - halfSize, vector.z + halfSize)),
+            new Sommet("F", new BABYLON.Vector3(vector.x + halfSize, vector.y - halfSize, vector.z + halfSize)),
+            new Sommet("G", new BABYLON.Vector3(vector.x + halfSize, vector.y + halfSize, vector.z + halfSize)),
+            new Sommet("H", new BABYLON.Vector3(vector.x - halfSize, vector.y + halfSize, vector.z + halfSize))
+        ];
+        const aretes = [
+            // Arêtes du bas
+            new Arete("AB", sommets[0], sommets[1]),
+            new Arete("BC", sommets[1], sommets[2]),
+            new Arete("CD", sommets[2], sommets[3]),
+            new Arete("DA", sommets[3], sommets[0]),
+            
+            // Arêtes du haut
+            new Arete("EF", sommets[4], sommets[5]),
+            new Arete("FG", sommets[5], sommets[6]),
+            new Arete("GH", sommets[6], sommets[7]),
+            new Arete("HE", sommets[7], sommets[4]),
+
+            // Arêtes verticales
+            new Arete("AE", sommets[0], sommets[4]),
+            new Arete("BF", sommets[1], sommets[5]),
+            new Arete("CG", sommets[2], sommets[6]),
+            new Arete("DH", sommets[3], sommets[7])
+        ];
+        return new Forme(name, sommets, aretes);
     }
 
     /**

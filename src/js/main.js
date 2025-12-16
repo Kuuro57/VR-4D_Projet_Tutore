@@ -41,9 +41,13 @@ const createScene = () => {
     initCamera(scene);
 
     // Chargement du cube depuis le fichier JSON
-    let cube = Forme.load('../data/cube.json').then(cube => {
-        cube.build(scene);
-    });
+
+    // let cube = Forme.load('../data/cube.json').then(cube => {
+    //     cube.build(scene);
+    // });
+
+    let cube = Forme.loadCubeFromCenter("CubeCenter", new BABYLON.Vector3(0,0,0), 1);
+    cube.build(scene);
 
      return scene;
 
