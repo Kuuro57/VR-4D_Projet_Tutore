@@ -1,6 +1,8 @@
+import {Forme} from "../forme.js";
+
 /**
  * Matrice de rotation sur l'axe X avec un angle donné
- * @param {*} angle Angle (en degrés)
+ * @param {Number} angle Angle (en radiant)
  * @returns Liste de liste représentant la matrice de rotation
  */
 var matriceRotationX = (angle) => {
@@ -20,7 +22,7 @@ var matriceRotationX = (angle) => {
 
 /**
  * Matrice de rotation sur l'axe Y avec un angle donné
- * @param {*} angle Angle (en degrés)
+ * @param {Number} angle Angle (en radiant)
  * @returns Liste de liste représentant la matrice de rotation
  */
 var matriceRotationY = (angle) => {
@@ -40,7 +42,7 @@ var matriceRotationY = (angle) => {
 
 /**
  * Matrice de rotation sur l'axe Z avec un angle donné
- * @param {*} angle Angle (en degrés)
+ * @param {Number} angle Angle (en radiant)
  * @returns Liste de liste représentant la matrice de rotation
  */
 var matriceRotationZ = (angle) => {
