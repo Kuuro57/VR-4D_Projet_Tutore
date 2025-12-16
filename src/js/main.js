@@ -1,5 +1,10 @@
 import { Forme } from "./forme.js";
 import { rotation3D } from "./transformations/rotations.js";
+<<<<<<< HEAD
+import { translation3D } from "./transformations/translations.js";
+=======
+import { homothetie3D } from "./transformations/homothetie.js";
+>>>>>>> 153d9ad9e31166171d226f9af782bf6158c4e800
 
 // Récupération du canvas
 const canvas = document.getElementById("renderCanvas");
@@ -49,8 +54,13 @@ const createScene = () => {
 
     let cube = Forme.loadCubeFromCenter("CubeCenter", new BABYLON.Vector3(0,0,0), 1);
     cube.build(scene);
-
+    let cube2 = Forme.loadCubeFromCenter("CubeCenter", new BABYLON.Vector3(0,0,0), 1);
+    cube2.build(scene);
     rotation3D(cube, "x", 45);
+    translation3D(cube, new BABYLON.Vector3(0,2,2));
+
+    //rotation3D(cube, "x", 45);
+    homothetie3D(cube, 10);
 
     return scene;
 
