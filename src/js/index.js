@@ -41,11 +41,6 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btn-rotation-z").addEventListener("click", () => {
     toggleRotation("z", "btn-rotation-z");
   });
-
-  document.getElementById("btn-homothetie").addEventListener("click", () => {
-    if (!forme3D) return;
-    homothetie3D(forme3D, 1.1);
-  });
 });
 
 const translationTimers = {};
@@ -79,11 +74,6 @@ function bindTranslationButton(id, axis, dir) {
   btn.addEventListener("mouseup", () => stopTranslation(axis, dir));
   btn.addEventListener("mouseleave", () => stopTranslation(axis, dir));
 
-  btn.addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    startTranslation(axis, dir);
-  });
-  btn.addEventListener("touchend", () => stopTranslation(axis, dir));
 }
 
 bindTranslationButton("tx-plus", "x", "+");
@@ -92,3 +82,39 @@ bindTranslationButton("ty-plus", "y", "+");
 bindTranslationButton("ty-minus", "y", "-");
 bindTranslationButton("tz-plus", "z", "+");
 bindTranslationButton("tz-minus", "z", "-");
+
+
+
+
+var idIntervalHomothetie = null;
+
+function startHomothetie(direction) {
+    if (!forme3D) return;
+
+    idIntervalHomothetie = setInterval(() => {
+      let factor = direction === "+" ? 1.1 : 0.9;
+        homothetie3D(forme3D, factor);
+    }, 100);
+}
+
+function stopHomothetie() {
+  clearInterval(idIntervalHomothetie);
+  idIntervalHomothetie = null;
+}
+
+function bindHomothetieButton(id, direction) {
+  const btn = document.getElementById(id);
+  let factor = direction === "+" ? 1.1 : 0.9;
+
+  btn.addEventListener("mousedown", () => startHomothetie(direction));
+  btn.addEventListener("mouseup", () => stopHomothetie());
+  btn.addEventListener("mouseleave", () => stopHomothetie());
+  btn.addEventListener("click", () => {
+    if (!forme3D) return;
+    homothetie3D(forme3D, factor);
+  });
+
+}
+
+bindHomothetieButton("homothetie-plus", "+");
+bindHomothetieButton("homothetie-minus", "-");
