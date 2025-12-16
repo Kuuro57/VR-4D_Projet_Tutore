@@ -18,6 +18,8 @@ class Sommet {
      */
     mesh;
 
+    baseDiameter = 0.2;
+    scale = 1.0;
 
 
     /**
@@ -40,8 +42,9 @@ class Sommet {
         const redMat = new BABYLON.StandardMaterial("redMat", scene);
         redMat.diffuseColor = BABYLON.Color3.Red();
 
-        const sphere = BABYLON.MeshBuilder.CreateSphere(`sphere${this.name}`, { diameter: 0.2, segments: 32 }, scene);
+        const sphere = BABYLON.MeshBuilder.CreateSphere(`sphere${this.name}`, { diameter: this.baseDiameter, segments: 32 }, scene);
         sphere.position.set(this.vector.x, this.vector.y, this.vector.z);
+        sphere.scaling.setAll(this.scale);
         sphere.material = redMat;
 
         this.mesh = sphere;
@@ -56,6 +59,7 @@ class Sommet {
         if (this.mesh == null) return;
 
         this.mesh.position.copyFrom(this.vector);
+        this.mesh.scaling.setAll(this.scale);
     }
 
 }
