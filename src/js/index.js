@@ -42,13 +42,53 @@ window.addEventListener("DOMContentLoaded", () => {
     toggleRotation("z", "btn-rotation-z");
   });
 
-    document.getElementById("btn-translation").addEventListener("click", () => {
-    if (!forme3D) return;
-    translation3D(forme3D, new BABYLON.Vector3(0.1, 0, 0));
-  });
-
-    document.getElementById("btn-homothetie").addEventListener("click", () => {
+  document.getElementById("btn-homothetie").addEventListener("click", () => {
     if (!forme3D) return;
     homothetie3D(forme3D, 1.1);
   });
 });
+
+const translationTimers = {};
+const STEP = 0.05;
+const INTERVAL = 16;
+
+function startTranslation(axis, direction) {
+  const key = axis + direction;
+  if (translationTimers[key]) return;
+
+  translationTimers[key] = setInterval(() => {
+    if (!forme3D) return;
+
+    const v = new BABYLON.Vector3(0, 0, 0);
+    v[axis] = direction === "+" ? STEP : -STEP;
+
+    translation3D(forme3D, v);
+  }, INTERVAL);
+}
+
+function stopTranslation(axis, direction) {
+  const key = axis + direction;
+  clearInterval(translationTimers[key]);
+  translationTimers[key] = null;
+}
+
+function bindTranslationButton(id, axis, dir) {
+  const btn = document.getElementById(id);
+
+  btn.addEventListener("mousedown", () => startTranslation(axis, dir));
+  btn.addEventListener("mouseup", () => stopTranslation(axis, dir));
+  btn.addEventListener("mouseleave", () => stopTranslation(axis, dir));
+
+  btn.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    startTranslation(axis, dir);
+  });
+  btn.addEventListener("touchend", () => stopTranslation(axis, dir));
+}
+
+bindTranslationButton("tx-plus", "x", "-");
+bindTranslationButton("tx-minus", "x", "+");
+bindTranslationButton("ty-plus", "y", "+");
+bindTranslationButton("ty-minus", "y", "-");
+bindTranslationButton("tz-plus", "z", "+");
+bindTranslationButton("tz-minus", "z", "-");
