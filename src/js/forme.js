@@ -98,6 +98,26 @@ class Forme {
     }
 
     /**
+     * Méthode qui calcule et retourne le centre de la forme sous forme d'un vecteur
+     * @returns Le vecteur représentant le centre de la forme
+     */
+    getVectorCenter() {
+
+        let sumX = 0;
+        let sumY = 0;
+        let sumZ = 0;
+
+        this.sommets.forEach(sommet => {
+            sumX += sommet.vector.x;
+            sumY += sommet.vector.y;
+            sumZ += sommet.vector.z;
+        });
+
+        return new BABYLON.Vector3(sumX / this.sommets.length, sumY / this.sommets.length, sumZ / this.sommets.length);
+
+    }
+
+    /**
      * Methode d'affichage de la forme dans la scène
      * @param {BABYLON.Scene} scene 
      */
