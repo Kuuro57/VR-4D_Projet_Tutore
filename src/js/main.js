@@ -1,7 +1,4 @@
 import { Forme } from "./forme.js";
-import { rotation3D } from "./transformations/rotations.js";
-import { translation3D } from "./transformations/translations.js";
-import { homothetie3D } from "./transformations/homothetie.js";
 
 
 // Récupération du canvas
@@ -10,10 +7,13 @@ const canvas = document.getElementById("renderCanvas");
 // Création du moteur Babylon
 const engine = new BABYLON.Engine(canvas, true);
 
-var forme3D; // Variable globale pour la forme 3D
+// Variable globale pour la forme 3D
+var forme3D;
+
+
 
 /**
- * Fonction qui initialise la caméra et la lumière dans l'espace Babylon
+ * Fonction qui initialise une caméra mobile et la lumière dans l'espace Babylon
  * @param {BABYLON.Scene} scene Scène sur laquelle on veut initialiser la caméra
  */
 function initCamera(scene) {
@@ -33,21 +33,20 @@ function initCamera(scene) {
 }
 
 
+
+/**
+ * Fonction qui initialise une caméra fixe et la lumière dans l'espace Babylon
+ * @param {BABYLON.Scene} scene Scène sur laquelle on veut initialiser la caméra
+ */
 function initCameraFixed(scene) {
-  // Caméra fixe
+  
   const camera = new BABYLON.FreeCamera(
     "FixedCamera",
-    new BABYLON.Vector3(3, 3, -6),  // position (à ajuster)
+    new BABYLON.Vector3(-3, 2, -5),
     scene
   );
+  camera.setTarget(new BABYLON.Vector3(0, 0, 0));
 
-  // Elle regarde le centre de votre cube
-  camera.setTarget(new BABYLON.Vector3(0.5, 0.5, 0.5));
-
-  // Important : ne pas attacher de contrôles => caméra non déplaçable
-  // camera.attachControl(canvas, true); // <-- surtout pas
-
-  // Lumière
   new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0), scene);
 }
 
