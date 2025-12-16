@@ -6,16 +6,19 @@ import { Sommet } from "./sommet.js";
 class Arete {
 
     /**
+     * @type {String}
      * Nom de l'arête (pour qu'elle soit retrouvée parmis les potentielles autres arêtes)
      */
     name;
 
     /**
+     * @type {Sommet}
      * Premier sommet de l'arête
      */
     sommet1;
 
     /**
+     * @type {Sommet}
      * Deuxième sommet de l'arête
      */
     sommet2;
