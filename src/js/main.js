@@ -10,7 +10,7 @@ const canvas = document.getElementById("renderCanvas");
 // Création du moteur Babylon
 const engine = new BABYLON.Engine(canvas, true);
 
-
+var forme3D; // Variable globale pour la forme 3D
 
 /**
  * Fonction qui initialise la caméra et la lumière dans l'espace Babylon
@@ -30,7 +30,25 @@ function initCamera(scene) {
     camera.attachControl(canvas, true);
 
     new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0), scene);
+}
 
+
+function initCameraFixed(scene) {
+  // Caméra fixe
+  const camera = new BABYLON.FreeCamera(
+    "FixedCamera",
+    new BABYLON.Vector3(3, 3, -6),  // position (à ajuster)
+    scene
+  );
+
+  // Elle regarde le centre de votre cube
+  camera.setTarget(new BABYLON.Vector3(0.5, 0.5, 0.5));
+
+  // Important : ne pas attacher de contrôles => caméra non déplaçable
+  // camera.attachControl(canvas, true); // <-- surtout pas
+
+  // Lumière
+  new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0), scene);
 }
 
 
@@ -42,7 +60,7 @@ const createScene = () => {
 
     // Initialisation de la scène
     const scene = new BABYLON.Scene(engine);
-    initCamera(scene);
+    initCameraFixed(scene);
 
     // Chargement du cube depuis le fichier JSON
 
@@ -50,14 +68,8 @@ const createScene = () => {
     //     cube.build(scene);
     // });
 
-    let cube = Forme.loadCubeFromCenter("CubeCenter", new BABYLON.Vector3(0,0,0), 1);
-    cube.build(scene);
-    let cube2 = Forme.loadCubeFromCenter("CubeCenter", new BABYLON.Vector3(0,0,0), 1);
-    cube2.build(scene);
-
-    rotation3D(cube, "x", 45);
-    translation3D(cube, new BABYLON.Vector3(0,2,2));
-    homothetie3D(cube, 3);
+    forme3D = Forme.loadCubeFromCenter("CubeCenter", new BABYLON.Vector3(0,0,0), 1);
+    forme3D.build(scene);
 
     return scene;
 
@@ -75,3 +87,6 @@ engine.runRenderLoop(() => {
 window.addEventListener("resize", () => {
   engine.resize();
 });
+
+
+export {forme3D};

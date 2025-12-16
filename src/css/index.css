@@ -1,13 +1,96 @@
 html, body { 
-    width:100%; 
-    height:100%; 
-    margin:0; 
-    overflow:hidden; 
+  width: 100%; 
+  height: 100%; 
+  margin: 0; 
+  overflow: hidden; 
 }
 
 #renderCanvas { 
-    width:100%; 
-    height:100%; 
-    touch-action:none; 
-    display:block; 
+  width: 100%; 
+  height: 100%; 
+  touch-action: none; 
+  display: block; 
+}
+
+/* Base pour tous les boutons (vos IDs) */
+#btn-rotation-x,
+#btn-rotation-y,
+#btn-rotation-z,
+#btn-translation,
+#btn-homothetie {
+  position: absolute;
+  left: 12px;
+  z-index: 10;
+
+  appearance: none;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(20, 20, 24, 0.75);
+  color: #fff;
+  font: 600 14px/1.1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  user-select: none;
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+
+#btn-rotation-x:hover,
+#btn-rotation-y:hover,
+#btn-rotation-z:hover,
+#btn-translation:hover,
+#btn-homothetie:hover {
+  background: rgba(40, 40, 48, 0.85);
+  border-color: rgba(255,255,255,0.28);
+  transform: translateY(-1px);
+}
+
+#btn-rotation-x:active,
+#btn-rotation-y:active,
+#btn-rotation-z:active,
+#btn-translation:active,
+#btn-homothetie:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.22);
+}
+
+#btn-rotation-x:focus-visible,
+#btn-rotation-y:focus-visible,
+#btn-rotation-z:focus-visible,
+#btn-translation:focus-visible,
+#btn-homothetie:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(100, 150, 255, 0.5), 0 10px 25px rgba(0,0,0,0.25);
+}
+
+/* Placement vertical en pile */
+#btn-rotation-x { top: 12px; }
+#btn-rotation-y { top: 56px; }
+#btn-rotation-z { top: 100px; }
+#btn-translation { top: 144px; }
+#btn-homothetie  { top: 188px; }
+
+/* Mobile : un peu plus grand + meilleure zone de clic */
+@media (max-width: 600px) {
+  #btn-rotation-x,
+  #btn-rotation-y,
+  #btn-rotation-z,
+  #btn-translation,
+  #btn-homothetie {
+    left: 10px;
+    font-size: 15px;
+    padding: 11px 14px;
+    border-radius: 12px;
+  }
+
+  #btn-rotation-x { top: 10px; }
+  #btn-rotation-y { top: 56px; }
+  #btn-rotation-z { top: 102px; }
+  #btn-translation { top: 148px; }
+  #btn-homothetie  { top: 194px; }
 }
