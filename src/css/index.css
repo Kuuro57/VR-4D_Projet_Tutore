@@ -17,7 +17,9 @@ html, body {
 #btn-rotation-y,
 #btn-rotation-z,
 #translation-panel,
-#homothetie-panel
+#homothetie-panel,
+#btn-faces-toggle,
+#btn-wire-toggle
 {
   position: absolute;
   left: 12px;
@@ -73,6 +75,8 @@ html, body {
 #btn-rotation-z { top: 100px; }
 #translation-panel { top: 144px; }
 #homothetie-panel { top: 294px; }
+#btn-faces-toggle { top: 373px; }
+#btn-wire-toggle { top: 417px; }
 
 /* Mobile : un peu plus grand + meilleure zone de clic */
 @media (max-width: 600px) {

@@ -16,7 +16,8 @@ const INTERVAL = 16;
 
 var idIntervalHomothetie = null;
 
-
+let facesVisible = true;
+let wireVisible = true;
 
 /**
  * Méthode qui active ou désactive la rotation de la forme
@@ -136,6 +137,7 @@ function bindHomothetieButton(id, direction) {
 
 }
 
+// On relie les boutons aux fonctions
 bindHomothetieButton("homothetie-plus", "+");
 bindHomothetieButton("homothetie-minus", "-");
 
@@ -156,6 +158,7 @@ function bindTranslationButton(id, axis, dir) {
 
 }
 
+// On relie les boutons aux fonctions
 bindTranslationButton("tx-plus", "x", "+");
 bindTranslationButton("tx-minus", "x", "-");
 bindTranslationButton("ty-plus", "y", "+");
@@ -179,4 +182,27 @@ window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("btn-rotation-z").addEventListener("click", () => {
         toggleRotation("z", "btn-rotation-z");
     });
+});
+
+// Ajout des listeners pour les boutons qui permettent d'afficher/cacher les faces et le fil de fer
+window.addEventListener("DOMContentLoaded", () => {
+  const btnFaces = document.getElementById("btn-faces-toggle");
+
+  btnFaces.addEventListener("click", () => {
+    if (!forme3D) return;
+
+    facesVisible = !facesVisible;
+    forme3D.toggleFaces(facesVisible);
+
+    btnFaces.textContent = facesVisible ? "Cacher faces" : "Afficher faces";
+  });
+  document.getElementById("btn-wire-toggle").addEventListener("click", () => {
+    if (!forme3D) return;
+
+    wireVisible = !wireVisible;
+    forme3D.toggleWireframe(wireVisible);
+
+    const btn = document.getElementById("btn-wire-toggle");
+    btn.textContent = wireVisible ? "Cacher sommets & arêtes" : "Afficher sommets & arêtes";
+  });
 });
