@@ -78,23 +78,6 @@ html, body {
 #btn-faces-toggle { top: 373px; }
 #btn-wire-toggle { top: 417px; }
 
-/* Mobile : un peu plus grand + meilleure zone de clic */
-@media (max-width: 600px) {
-  #btn-rotation-x,
-  #btn-rotation-y,
-  #btn-rotation-z
-  {
-    left: 10px;
-    font-size: 15px;
-    padding: 11px 14px;
-    border-radius: 12px;
-  }
-
-  #btn-rotation-x { top: 10px; }
-  #btn-rotation-y { top: 56px; }
-  #btn-rotation-z { top: 102px; }
-}
-
 #translation-panel,
 #homothetie-panel
 {
@@ -129,3 +112,17 @@ html, body {
   cursor: pointer;
 }
 
+/* Visualisation 3D et 2D */
+
+#container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+}
+
+#renderCanvas3D,
+#renderCanvas2D {
+  width: 50%;
+  height: 100%;
+  display: block;
+}
