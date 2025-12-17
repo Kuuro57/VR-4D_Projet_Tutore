@@ -1,6 +1,8 @@
+import { camera } from "./main.js";
 import { Sommet } from "./sommet.js";
 import { Arete } from "./arete.js";
 import { translation3D } from "./transformations/translations.js";
+import { projection2D } from "./projection/projection2D.js";
 
 /**
  * Classe représentant une forme en 3D
@@ -24,6 +26,12 @@ class Forme {
      * Liste des arêtes définies dans arete.js
      */
     aretes;
+
+    /**
+     * @type {Forme}
+     * Forme représentant la projection 2D de la forme
+     */
+    projection2D;
 
     /**
      * Constructeur de la forme
@@ -184,12 +192,34 @@ class Forme {
      * Met à jour la forme (points et arêtes) dans l'espace 3D
      */
     update() {
+        
+        // Update de la forme
         this.sommets.forEach(sommet => {
             sommet.update();
         });
         this.aretes.forEach(arete => {
             arete.update();
         });
+
+        // Update de la projection 2D
+        this.projection2D.deleteAllProjections();
+        projection2D(this, camera);
+
+    }
+
+    /**
+     * Méthode qui supprime toutes les projections de la forme
+     */
+    deleteAllProjections() {
+
+        this.sommets.forEach(sommet => {
+            sommet.mesh.dispose();
+        });
+
+        this.aretes.forEach(arete => {
+            arete.mesh.dispose();
+        });
+
     }
 
     /**

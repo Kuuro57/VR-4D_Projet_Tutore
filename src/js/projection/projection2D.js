@@ -24,13 +24,11 @@ function projection2D(forme3D, camera, focal = 4) {
 
         sommet.vector = new BABYLON.Vector3(x2D, y2D, 0);
 
-        console.log(sommet.vector);
-
     });
 
     forme2D.build();
+    forme3D.projection2D = forme2D;
 
-    return forme2D;
 }
 
 

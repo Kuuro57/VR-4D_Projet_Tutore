@@ -72,7 +72,7 @@ const createScene = () => {
     forme3D = Forme.loadCubeFromCenter("CubeCenter", new BABYLON.Vector3(0,0,0), 1);
     forme3D.build(scene);
 
-    let forme2D = projection2D(forme3D, camera);
+    projection2D(forme3D, camera);
 
     return scene;
 
@@ -92,4 +92,7 @@ window.addEventListener("resize", () => {
 });
 
 
-export {forme3D};
+export {
+  forme3D,
+  camera
+};
