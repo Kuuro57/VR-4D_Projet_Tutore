@@ -7,17 +7,14 @@ import { matriceRotationX, matriceRotationY, matriceRotationZ } from "./matrices
  * @param {String} axe Axe selon lequelle on va faire pivoter la forme
  * @param {Number} angle Angle (en degrés)
  */
-function rotation3D (forme, axe, angle) {
-
-    // On transforme l'unité de l'angle en radiant
-    angle = angle * (Math.PI / 180);
+function rotation3D (forme, axe) {
 
     // Récupère la bonne matrice de rotation
     var rotationMatrix = null;
     switch (axe) {
-        case "x" : rotationMatrix = matriceRotationX(angle); break;
-        case "y" : rotationMatrix = matriceRotationY(angle); break;
-        case "z" : rotationMatrix = matriceRotationZ(angle); break;
+        case "x" : rotationMatrix = matriceRotationX; break;
+        case "y" : rotationMatrix = matriceRotationY; break;
+        case "z" : rotationMatrix = matriceRotationZ; break;
         default : console.error(`Axe invalide : ${axe}`); return null;
     }
     
