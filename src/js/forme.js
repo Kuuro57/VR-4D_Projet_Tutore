@@ -1,5 +1,6 @@
 import { Sommet } from "./sommet.js";
 import { Arete } from "./arete.js";
+import { FaceCarre } from "./faceCarre.js";
 import { translation3D } from "./transformations/translations.js";
 
 /**
@@ -24,6 +25,11 @@ class Forme {
      * Liste des arêtes définies dans arete.js
      */
     aretes;
+
+    /**
+    * @type {FaceCarre[]}
+    */
+    faces = [];
 
     /**
      * @type {Forme}
@@ -101,9 +107,52 @@ class Forme {
             new Arete("CG", sommets[2], sommets[6]),
             new Arete("DH", sommets[3], sommets[7])
         ];
-        return new Forme(name, sommets, aretes);
+        const faces = [
+            // Bas
+            new FaceCarre("ABCD", sommets[0], sommets[1], sommets[2], sommets[3]),
+            // Haut
+            new FaceCarre("EFGH", sommets[4], sommets[5], sommets[6], sommets[7]),
+
+            // Faces latérales
+            new FaceCarre("ABFE", sommets[0], sommets[1], sommets[5], sommets[4]),
+            new FaceCarre("BCGF", sommets[1], sommets[2], sommets[6], sommets[5]),
+            new FaceCarre("CDHG", sommets[2], sommets[3], sommets[7], sommets[6]),
+            new FaceCarre("DAHE", sommets[3], sommets[0], sommets[4], sommets[7]),
+        ];
+
+        const forme = new Forme(name, sommets, aretes);
+        forme.faces = faces;
+        return forme;
     }
 
+    toggleFaces(visible) {
+
+        this.faces.forEach(face => {
+            if (face.mesh) {
+                face.mesh.isVisible = visible;
+            }
+        });
+        
+    }
+
+    toggleWireframe(visible) {
+
+        // Sommets (sphères)
+        this.sommets.forEach(sommet => {
+            if (sommet.mesh) {
+                sommet.mesh.isVisible = visible;
+            }
+        });
+
+        // Arêtes (tubes)
+        this.aretes.forEach(arete => {
+            if (arete.mesh) {
+                arete.mesh.isVisible = visible;
+            }
+        });
+
+    }
+    
     static loadHyperCubeFromCube(name,vector,size) {
         let cube = this.loadCubeFromCenter("cube", new BABYLON.Vector3(0,0,0), size);
         let hypercube = new Forme(name, [], []);
@@ -184,6 +233,9 @@ class Forme {
         this.aretes.forEach(arete => {
             arete.build(scene);
         });
+        this.faces.forEach(face => {
+            face.build(scene);
+        });
     }
 
     /**
@@ -197,6 +249,9 @@ class Forme {
         });
         this.aretes.forEach(arete => {
             arete.update();
+        });
+        this.faces.forEach(face => {
+            face.update();
         });
 
         // Update de la projection 2D
