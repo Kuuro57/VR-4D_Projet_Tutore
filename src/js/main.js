@@ -11,6 +11,7 @@ const engine = new BABYLON.Engine(canvas, true);
 // Variable globale pour la forme 3D et la camera
 var forme3D;
 var camera;
+var scene;
 
 
 
@@ -60,7 +61,7 @@ function initCameraFixed(scene) {
 const createScene = () => {
 
     // Initialisation de la scène
-    const scene = new BABYLON.Scene(engine);
+    scene = new BABYLON.Scene(engine);
     initCameraFixed(scene);
 
     // Chargement du cube depuis le fichier JSON
@@ -79,7 +80,7 @@ const createScene = () => {
 };
 
 // Création de la scène
-const scene = createScene();
+scene = createScene();
 
 // Boucle de rendu
 engine.runRenderLoop(() => {
@@ -92,7 +93,10 @@ window.addEventListener("resize", () => {
 });
 
 
+
+// Export
 export {
   forme3D,
-  camera
+  camera,
+  scene
 };

@@ -1,8 +1,6 @@
-import { camera } from "./main.js";
 import { Sommet } from "./sommet.js";
 import { Arete } from "./arete.js";
 import { translation3D } from "./transformations/translations.js";
-import { projection2D } from "./projection/projection2D.js";
 
 /**
  * Classe représentant une forme en 3D
@@ -202,15 +200,16 @@ class Forme {
         });
 
         // Update de la projection 2D
-        this.projection2D.deleteAllProjections();
-        projection2D(this, camera);
+        if (this.projection2D != null) {
+            this.projection2D.update();
+        }
 
     }
 
     /**
-     * Méthode qui supprime toutes les projections de la forme
+     * Méthode qui supprime la forme
      */
-    deleteAllProjections() {
+    delete() {
 
         this.sommets.forEach(sommet => {
             sommet.mesh.dispose();

@@ -1,3 +1,5 @@
+import { Projection2D } from "../projection2D.js";
+
 /**
  * Projette une forme 3D dans un espace 2D
  * @param {Forme} forme3D 
@@ -6,7 +8,9 @@
  */
 function projection2D(forme3D, camera, focal = 4) {
     
-    let forme2D = forme3D.getClone();
+    let forme3DClone = forme3D.getClone();
+    let forme2D = new Projection2D(forme3DClone.name, forme3DClone.sommets, forme3DClone.aretes);
+    console.log(forme2D);
 
     forme2D.sommets.forEach(sommet => {
 
@@ -27,9 +31,11 @@ function projection2D(forme3D, camera, focal = 4) {
     });
 
     forme2D.build();
+    forme2D.formeParente = forme3D;
     forme3D.projection2D = forme2D;
 
 }
+
 
 
 // Export

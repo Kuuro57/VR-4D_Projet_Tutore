@@ -1,4 +1,5 @@
 import { Sommet } from "./sommet.js";
+import { scene } from "./main.js";
 
 /**
  * Classe qui représente une arête d'une forme géométrique 3D
@@ -24,12 +25,16 @@ class Arete {
     sommet2;
 
     /**
-     * @type {*} ???
+     * @type {BABYLON.Mesh} 
+     * Objet physique représentant l'arête dans l'espace 3D
      */
     mesh;
 
+    /**
+     * @type {Number} 
+     * Rayon du tube représentant l'arête dans l'espace 3D
+     */
     radius = 0.03;
-    scene = null;
 
 
 
@@ -49,9 +54,8 @@ class Arete {
 
     /**
      * Méthode qui permet de construire l'arête sur la scène
-     * @param {BABYLON.Scene} scene Scène sur laquelle on veut construire l'arête
      */
-    build(scene) {
+    build() {
 
         // Initialisation du matériau
         const edgesMat = new BABYLON.StandardMaterial(`${this.name}_edgesMat`, scene);
@@ -79,7 +83,7 @@ class Arete {
         if (this.mesh == null) return;
 
         const path = [this.sommet1.vector, this.sommet2.vector];
-        BABYLON.MeshBuilder.CreateTube(this.name, { path, instance: this.mesh, radius: this.radius }, this.scene);
+        BABYLON.MeshBuilder.CreateTube(this.name, { path, instance: this.mesh, radius: this.radius }, scene);
     }
 
 }

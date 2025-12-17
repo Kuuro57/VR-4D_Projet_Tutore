@@ -1,3 +1,5 @@
+import { scene } from "./main.js";
+
 /**
  * Classe représentant un sommet dans un espace 3D
  */
@@ -14,14 +16,25 @@ class Sommet {
     vector;
 
     /**
-     * @type {*} ???
+     * @type {BABYLON.Mesh} 
+     * Objet physique représentant l'arête dans l'espace 3D
      */
     mesh;
 
+    /**
+     * @type {Number} 
+     * Diamètre de la sphère représentant le sommet
+     */
     baseDiameter = 0.2;
+
+    /**
+     * @type {Number} 
+     * Taille du sommet
+     */
     scale = 1.0;
 
 
+    
     /**
      * Constructeur de la classe Sommet
      * @param {String} n Nom du sommet
@@ -36,9 +49,8 @@ class Sommet {
 
     /**
      * Méthode qui construit le sommet dans la scène
-     * @param {BABYLON.Scene} scene
      */
-    build(scene) {
+    build() {
         const redMat = new BABYLON.StandardMaterial("redMat", scene);
         redMat.diffuseColor = BABYLON.Color3.Red();
 
