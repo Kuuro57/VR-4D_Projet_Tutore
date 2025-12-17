@@ -1,5 +1,6 @@
 import { Sommet } from "./sommet.js";
 import { Arete } from "./arete.js";
+import { translation3D } from "./transformations/translations.js";
 
 /**
  * Classe représentant une forme en 3D
@@ -95,6 +96,55 @@ class Forme {
             new Arete("DH", sommets[3], sommets[7])
         ];
         return new Forme(name, sommets, aretes);
+    }
+
+    static loadHyperCubeFromCube(name,vector,size) {
+        let cube = this.loadCubeFromCenter("cube", new BABYLON.Vector3(0,0,0), size);
+        let hypercube = new Forme(name, [], []);
+        cube.sommets.forEach(sommet => {
+            let newSommet = new Sommet(sommet.name + "'", new BABYLON.Vector4(sommet.vector.x, sommet.vector.y, sommet.vector.z, -size/2));
+            //sommet du cube original
+            hypercube.sommets.push(new Sommet(sommet.name, new BABYLON.Vector4(sommet.vector.x, sommet.vector.y, sommet.vector.z, size/2)));
+            //sommet miroir
+            hypercube.sommets.push(newSommet);
+        });
+
+        // Helpers pour récupérer un sommet par nom
+        let getS = (name) => hypercube.sommets.find(s => s.name === name);
+
+        //arêtes originales du cube
+        cube.aretes.forEach(arete => {
+            hypercube.aretes.push(new Arete(arete.name, getS(arete.sommet1.name), getS(arete.sommet2.name)));
+        });
+
+        //relier chaque sommet à son miroir
+        cube.sommets.forEach(sommet => {
+            let sommetMiroir = getS(sommet.name + "'");
+
+            if (!getS(sommet.name + "'")) {
+                throw new Error("Sommet introuvable pour une arête du cube");
+            }
+
+            
+            hypercube.aretes.push(new Arete(`${sommet.name}${sommetMiroir.name}`, getS(sommet.name), sommetMiroir));
+        });
+
+        //relier les arrêtes miroires
+        cube.aretes.forEach(arete => {
+            if (!getS(arete.sommet1.name) || !getS(arete.sommet2.name)) {
+                throw new Error("Sommet introuvable pour une arête du cube");
+            }
+
+            let sommet1Miroir = getS(arete.sommet1.name + "'");
+            let sommet2Miroir = getS(arete.sommet2.name + "'");
+
+            hypercube.aretes.push(new Arete(`${arete.name}'`, sommet1Miroir, sommet2Miroir));
+        });
+
+        translation3D(hypercube,vector);
+
+        return hypercube;
+        
     }
 
     /**
