@@ -1,6 +1,6 @@
 import {forme3D} from "./main.js";
 import { rotation3D } from "./transformations/rotations.js";
-import { translation3D } from "./transformations/translations.js";
+import { translation } from "./transformations/translations.js";
 import { homothetie3D } from "./transformations/homothetie.js";
 
 // CONSTANTES
@@ -69,7 +69,7 @@ function startTranslation(axis, direction) {
       const v = new BABYLON.Vector3(0, 0, 0);
       v[axis] = direction === "+" ? STEP : -STEP;
 
-      translation3D(forme3D, v);
+      translation(forme3D, v);
     }, INTERVAL);
 }
 
