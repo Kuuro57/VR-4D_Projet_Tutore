@@ -1,4 +1,5 @@
 import { Forme } from "./forme.js";
+import { projection2D } from "./projection/projection2D.js";
 
 
 // Récupération du canvas
@@ -7,8 +8,9 @@ const canvas = document.getElementById("renderCanvas");
 // Création du moteur Babylon
 const engine = new BABYLON.Engine(canvas, true);
 
-// Variable globale pour la forme 3D
+// Variable globale pour la forme 3D et la camera
 var forme3D;
+var camera;
 
 
 
@@ -19,7 +21,7 @@ var forme3D;
 function initCamera(scene) {
     
     // --- CAMERA & LUMIÈRE ---
-    const camera = new BABYLON.ArcRotateCamera(
+    camera = new BABYLON.ArcRotateCamera(
         "Camera",
         -Math.PI / 2,
         Math.PI / 2,
@@ -40,7 +42,7 @@ function initCamera(scene) {
  */
 function initCameraFixed(scene) {
   
-  const camera = new BABYLON.FreeCamera(
+  camera = new BABYLON.FreeCamera(
     "FixedCamera",
     new BABYLON.Vector3(-3, 2, -5),
     scene
@@ -70,6 +72,8 @@ const createScene = () => {
     forme3D = Forme.loadCubeFromCenter("CubeCenter", new BABYLON.Vector3(0,0,0), 1);
     forme3D.build(scene);
 
+    projection2D(forme3D, camera);
+
     return scene;
 
 };
@@ -88,4 +92,7 @@ window.addEventListener("resize", () => {
 });
 
 
-export {forme3D};
+export {
+  forme3D,
+  camera
+};

@@ -9,7 +9,7 @@ class Sommet {
     name;
 
     /**
-     * @type {BABYLON.Vector3} Position du sommet
+     * @type {BABYLON.Vector} Position du sommet
      */
     vector;
 
@@ -25,7 +25,7 @@ class Sommet {
     /**
      * Constructeur de la classe Sommet
      * @param {String} n Nom du sommet
-     * @param {BABYLON.Vector3} v Position du sommet
+     * @param {BABYLON.Vector} v Position du sommet
      */
     constructor(n, v) {
         this.vector = v;

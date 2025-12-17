@@ -1,6 +1,9 @@
+import { camera } from "./main.js";
 import { Sommet } from "./sommet.js";
 import { Arete } from "./arete.js";
 import { FaceCarre } from "./faceCarre.js";
+import { translation3D } from "./transformations/translations.js";
+import { projection2D } from "./projection/projection2D.js";
 
 /**
  * Classe représentant une forme en 3D
@@ -30,6 +33,11 @@ class Forme {
     */
     faces = [];
 
+    /**
+     * @type {Forme}
+     * Forme représentant la projection 2D de la forme
+     */
+    projection2D;
 
     /**
      * Constructeur de la forme
@@ -147,6 +155,55 @@ class Forme {
 
     }
     
+    static loadHyperCubeFromCube(name,vector,size) {
+        let cube = this.loadCubeFromCenter("cube", new BABYLON.Vector3(0,0,0), size);
+        let hypercube = new Forme(name, [], []);
+        cube.sommets.forEach(sommet => {
+            let newSommet = new Sommet(sommet.name + "'", new BABYLON.Vector4(sommet.vector.x, sommet.vector.y, sommet.vector.z, -size/2));
+            //sommet du cube original
+            hypercube.sommets.push(new Sommet(sommet.name, new BABYLON.Vector4(sommet.vector.x, sommet.vector.y, sommet.vector.z, size/2)));
+            //sommet miroir
+            hypercube.sommets.push(newSommet);
+        });
+
+        // Helpers pour récupérer un sommet par nom
+        let getS = (name) => hypercube.sommets.find(s => s.name === name);
+
+        //arêtes originales du cube
+        cube.aretes.forEach(arete => {
+            hypercube.aretes.push(new Arete(arete.name, getS(arete.sommet1.name), getS(arete.sommet2.name)));
+        });
+
+        //relier chaque sommet à son miroir
+        cube.sommets.forEach(sommet => {
+            let sommetMiroir = getS(sommet.name + "'");
+
+            if (!getS(sommet.name + "'")) {
+                throw new Error("Sommet introuvable pour une arête du cube");
+            }
+
+            
+            hypercube.aretes.push(new Arete(`${sommet.name}${sommetMiroir.name}`, getS(sommet.name), sommetMiroir));
+        });
+
+        //relier les arrêtes miroires
+        cube.aretes.forEach(arete => {
+            if (!getS(arete.sommet1.name) || !getS(arete.sommet2.name)) {
+                throw new Error("Sommet introuvable pour une arête du cube");
+            }
+
+            let sommet1Miroir = getS(arete.sommet1.name + "'");
+            let sommet2Miroir = getS(arete.sommet2.name + "'");
+
+            hypercube.aretes.push(new Arete(`${arete.name}'`, sommet1Miroir, sommet2Miroir));
+        });
+
+        translation3D(hypercube,vector);
+
+        return hypercube;
+        
+    }
+
     /**
      * Méthode qui calcule et retourne le centre de la forme sous forme d'un vecteur
      * @returns Le vecteur représentant le centre de la forme
@@ -187,6 +244,8 @@ class Forme {
      * Met à jour la forme (points et arêtes) dans l'espace 3D
      */
     update() {
+        
+        // Update de la forme
         this.sommets.forEach(sommet => {
             sommet.update();
         });
@@ -196,6 +255,54 @@ class Forme {
         this.faces.forEach(face => {
             face.update();
         });
+
+        // Update de la projection 2D
+        this.projection2D.deleteAllProjections();
+        projection2D(this, camera);
+
+    }
+
+    /**
+     * Méthode qui supprime toutes les projections de la forme
+     */
+    deleteAllProjections() {
+
+        this.sommets.forEach(sommet => {
+            sommet.mesh.dispose();
+        });
+
+        this.aretes.forEach(arete => {
+            arete.mesh.dispose();
+        });
+
+    }
+
+    /**
+     * Méthode qui retourne une copie de la forme
+     * @returns Une copie
+     */
+    getClone() {
+
+        let getS = (name) => newListSommets.find(s => s.name === name);
+
+        // Clone des sommets
+        let newListSommets = [];
+        this.sommets.forEach(sommet => {
+            newListSommets.push(new Sommet(sommet.name, new BABYLON.Vector3(sommet.vector.x, sommet.vector.y, sommet.vector.z)));
+        });
+
+        // Clone des arêtes
+        let newListAretes = [];
+        this.aretes.forEach(arete => {
+            newListAretes.push(new Arete(arete.name, 
+                getS(arete.sommet1.name),
+                getS(arete.sommet2.name)
+            ));
+        });
+
+        // Création de la nouvelle forme clonée
+        return new Forme(this.name + "_copy", newListSommets, newListAretes);
+
     }
 
 }

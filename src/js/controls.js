@@ -42,8 +42,7 @@ function toggleRotation(axis, btnId) {
     else {
 
         timers[axis] = setInterval(() => {
-          
-          rotation3D(forme3D, axis, 1);
+          rotation3D(forme3D, axis);
         }, 10);
         btn.textContent = `Stop ${axis.toUpperCase()}`;
       
