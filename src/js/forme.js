@@ -142,6 +142,34 @@ class Forme {
         });
     }
 
+    /**
+     * Méthode qui retourne une copie de la forme
+     * @returns Une copie
+     */
+    getClone() {
+
+        let getS = (name) => newListSommets.find(s => s.name === name);
+
+        // Clone des sommets
+        let newListSommets = [];
+        this.sommets.forEach(sommet => {
+            newListSommets.push(new Sommet(sommet.name, new BABYLON.Vector3(sommet.vector.x, sommet.vector.y, sommet.vector.z)));
+        });
+
+        // Clone des arêtes
+        let newListAretes = [];
+        this.aretes.forEach(arete => {
+            newListAretes.push(new Arete(arete.name, 
+                getS(arete.sommet1.name),
+                getS(arete.sommet2.name)
+            ));
+        });
+
+        // Création de la nouvelle forme clonée
+        return new Forme(this.name + "_copy", newListSommets, newListAretes);
+
+    }
+
 }
 
 //Export
