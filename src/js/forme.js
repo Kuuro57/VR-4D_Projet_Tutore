@@ -1,7 +1,7 @@
 import { Sommet } from "./sommet.js";
 import { Arete } from "./arete.js";
 import { FaceCarre } from "./faceCarre.js";
-import { translation3D } from "./transformations/translations.js";
+import { translation } from "./transformations/translations.js";
 
 /**
  * Classe représentant une forme en 3D
@@ -36,6 +36,12 @@ class Forme {
      * Forme représentant la projection 2D de la forme
      */
     projection2D;
+
+    /**
+     * @type {Forme}
+     * Forme représentant la projection 3D de la forme
+     */
+    projection3D;
 
     /**
      * Constructeur de la forme
@@ -196,7 +202,7 @@ class Forme {
             hypercube.aretes.push(new Arete(`${arete.name}'`, sommet1Miroir, sommet2Miroir));
         });
 
-        translation3D(hypercube,vector);
+        translation(hypercube,vector);
 
         return hypercube;
         
@@ -259,6 +265,11 @@ class Forme {
             this.projection2D.update();
         }
 
+        // Update de la projection 3D
+        if (this.projection3D != null) {
+            this.projection3D.update();
+        }
+
     }
 
     /**
@@ -287,7 +298,11 @@ class Forme {
         // Clone des sommets
         let newListSommets = [];
         this.sommets.forEach(sommet => {
-            newListSommets.push(new Sommet(sommet.name, new BABYLON.Vector3(sommet.vector.x, sommet.vector.y, sommet.vector.z)));
+            if(sommet.vector instanceof BABYLON.Vector4){
+                newListSommets.push(new Sommet(sommet.name, new BABYLON.Vector4(sommet.vector.x, sommet.vector.y, sommet.vector.z, sommet.vector.w)));
+            } else {
+                newListSommets.push(new Sommet(sommet.name, new BABYLON.Vector3(sommet.vector.x, sommet.vector.y, sommet.vector.z)));
+            }
         });
 
         // Clone des arêtes

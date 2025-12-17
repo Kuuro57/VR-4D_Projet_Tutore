@@ -1,5 +1,5 @@
 import { Forme } from "./forme.js";
-import { projection2D } from "./projection/projection2D.js";
+import { projection2D, projection3D } from "./projection/projections.js";
 
 
 // Récupération du canvas
@@ -9,6 +9,7 @@ const canvas = document.getElementById("renderCanvas");
 const engine = new BABYLON.Engine(canvas, true);
 
 // Variable globale pour la forme 3D et la camera
+var forme4D
 var forme3D;
 var camera;
 var scene;
@@ -72,8 +73,11 @@ const createScene = () => {
 
     forme3D = Forme.loadCubeFromCenter("CubeCenter", new BABYLON.Vector3(0,0,0), 1);
     forme3D.build(scene);
-
     projection2D(forme3D, camera);
+
+    //forme4D = Forme.loadHyperCubeFromCube("Hypercube", new BABYLON.Vector4(0,0,0,0), 1);
+    //projection3D(forme4D, camera);
+    //console.log(forme4D);
 
     return scene;
 

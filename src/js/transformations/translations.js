@@ -1,9 +1,9 @@
 /**
- * Translation des sommets dans un espace 3D selon un vecteur
+ * Translation des sommets dans un espace de dimension n selon un vecteur de dimension n
  * @param {Forme} forme
- * @param {BABYLON.Vector3} translation 
+ * @param {BABYLON.Vector} translation 
  */
-function translation3D(forme, translation) {
+function translation(forme, translation) {
 
     forme.sommets.forEach(sommet => {
         sommet.vector.addInPlace(translation);
@@ -14,5 +14,5 @@ function translation3D(forme, translation) {
 
 // Export
 export {
-    translation3D
+    translation
 }
