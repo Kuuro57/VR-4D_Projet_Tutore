@@ -233,44 +233,23 @@ class Forme {
      * @param {BABYLON.Scene} scene 
      */
     build(scene) {
-        this.sommets.forEach(sommet => {
-            sommet.build(scene);
-        });
-        this.aretes.forEach(arete => {
-            arete.build(scene);
-        });
-        this.faces.forEach(face => {
-            face.build(scene);
-        });
-    }
+    this.sommets.forEach(s => s.build(scene));
+    this.aretes.forEach(a => a.build(scene));
+    this.faces.forEach(f => f.build(scene));
+}
 
     /**
      * Met à jour la forme (points et arêtes) dans l'espace 3D
      */
     update() {
-        
-        // Update de la forme
-        this.sommets.forEach(sommet => {
-            sommet.update();
-        });
-        this.aretes.forEach(arete => {
-            arete.update();
-        });
-        this.faces.forEach(face => {
-            face.update();
-        });
+    this.sommets.forEach(s => s.update());
+    this.aretes.forEach(a => a.update());
+    this.faces.forEach(f => f.update());
 
-        // Update de la projection 2D
-        if (this.projection2D != null) {
-            this.projection2D.update();
-        }
+    if (this.projection2D) this.projection2D.update();
+    if (this.projection3D) this.projection3D.update();
+}
 
-        // Update de la projection 3D
-        if (this.projection3D != null) {
-            this.projection3D.update();
-        }
-
-    }
 
     /**
      * Méthode qui supprime la forme

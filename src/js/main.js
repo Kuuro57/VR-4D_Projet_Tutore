@@ -12,17 +12,17 @@ const engine3D = new BABYLON.Engine(canvas3D, true);
 const engine2D = new BABYLON.Engine(canvas2D, true);
 
 // Variable globale pour la forme 3D et la camera
-var forme4D
-var forme3D;
-var camera;
-var scene;
+// Scene
+let scene;
+let scene2D;
 
 // Cameras
-let camera;
+let camera3D;
 let camera2D;
 
 // Formes
 let forme3D;
+let forme4D;
 
 
 /**
@@ -64,7 +64,7 @@ function initCameraFixed(scene) {
 }
 
 function initCamera3D(scene) {
-  camera = new BABYLON.ArcRotateCamera(
+  camera3D = new BABYLON.ArcRotateCamera(
     "Camera3D",
     -Math.PI / 2,
     Math.PI / 2,
@@ -73,7 +73,7 @@ function initCamera3D(scene) {
     scene
   );
 
-  camera.attachControl(canvas3D, true);
+  camera3D.attachControl(canvas3D, true);
   new BABYLON.HemisphericLight("light3D", new BABYLON.Vector3(1, 1, 0), scene);
 }
 
@@ -123,7 +123,6 @@ function createScene() {
 
     forme3D.projection2D.formeParente = forme3D;
     forme3D.projection2D.build(scene2D);
-    projection2D(forme3D, camera);
 
     //forme4D = Forme.loadHyperCubeFromCube("Hypercube", new BABYLON.Vector4(0,0,0,0), 1);
     //projection3D(forme4D, camera);
@@ -156,6 +155,8 @@ window.addEventListener("resize", () => {
 
 export {
   forme3D,
-  camera,
-  scene
+  camera3D,
+  camera2D,
+  scene,
+  scene2D
 };

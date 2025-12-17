@@ -1,5 +1,4 @@
 import { Forme } from "./forme.js";
-import { camera } from "./main.js";
 
 /**
  * Classe représentant une projection 3D d'une forme 4D
@@ -18,9 +17,10 @@ class Projection3D extends Forme {
      * @param {Sommet[]} sommetsParameters 
      * @param {Arete[]} aretesParameters 
      */
-    constructor(nom, sommetsParameters, aretesParameters) {
-        super(nom, sommetsParameters, aretesParameters);
-    }
+    constructor(nom, sommets, aretes, camera3D) {
+    super(nom, sommets, aretes);
+    this.camera3D = camera3D;
+  }
 
 
 
@@ -35,9 +35,9 @@ class Projection3D extends Forme {
         this.formeParente.sommets.forEach(sommet => {
 
             // Calcul de la position relative du sommet par rapport à la caméra
-            let relativeX = sommet.vector.x - camera.position.x;
-            let relativeY = sommet.vector.y - camera.position.y;
-            let relativeZ = sommet.vector.z - camera.position.z;
+            let relativeX = sommet.vector.x - this.camera3D.position.x;
+            let relativeY = sommet.vector.y - this.camera3D.position.y;
+            let relativeZ = sommet.vector.z - this.camera3D.position.z;
             let relativeW = sommet.vector.w - 0; // Supposons que la caméra est à w=0
 
             // Empêcher la division par zéro
