@@ -85,13 +85,21 @@ function initCamera2D(scene) {
   );
   camera2D.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
 
+  const ratio = canvas2D.clientWidth / canvas2D.clientHeight;
   const d = 5;
-  camera2D.orthoLeft = -d;
-  camera2D.orthoRight = d;
-  camera2D.orthoTop = d;
+
+  camera2D.orthoLeft   = -d * ratio;
+  camera2D.orthoRight  =  d * ratio;
+  camera2D.orthoTop    =  d;
   camera2D.orthoBottom = -d;
 
   camera2D.setTarget(BABYLON.Vector3.Zero());
+
+  new BABYLON.HemisphericLight(
+    "light2D",
+    new BABYLON.Vector3(5, 5, -10),
+    scene
+  );
 }
 
 
