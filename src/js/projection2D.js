@@ -27,23 +27,30 @@ class Projection2D extends Forme {
      * Met à jour la forme (points et arêtes) dans l'espace 3D
      */
     update() {
+        const baseScale = 1;
+        const depthScale = 0.2;
 
-        const focal = 4;
         let getS = (name) => this.sommets.find(s => s.name === name);
         
+        // moyenne des Z pour stabiliser
+        let avgZ = 0;
+        this.formeParente.sommets.forEach(s => avgZ += s.vector.z);
+        avgZ /= this.formeParente.sommets.length;
+
+        let scale = baseScale - avgZ * depthScale;
+
+        // éviter les échelles négatives ou nulles
+        scale = Math.max(0.1, scale);
+
         this.formeParente.sommets.forEach(sommet => {
 
             // Calcul de la position relative du sommet par rapport à la caméra
             let relativeX = sommet.vector.x - this.camera2D.position.x;
             let relativeY = sommet.vector.y - this.camera2D.position.y;
-            let relativeZ = sommet.vector.z - this.camera2D.position.z;
-
-            // Empêcher la division par zéro
-            if (relativeZ <= 0.1) relativeZ = 0.1;
-
+            
             // Application de la projection
-            let x2D = (relativeX / relativeZ) * focal;
-            let y2D = (relativeY / relativeZ) * focal;
+            let x2D = (relativeX * scale);
+            let y2D = (relativeY * scale);
 
             let s2D = getS(sommet.name);
             s2D.vector.set(x2D, y2D, 0);

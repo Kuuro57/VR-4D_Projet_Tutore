@@ -123,11 +123,9 @@ html, body {
 }
 
 #renderCanvas2D {
-  position: absolute;
+  position: absolute/*cinema*/;
   right: 20px;
   top: 20px;
   width: 30%;
   height: 30%;
-  border: 2px solid white;
-  background: #111;
 }

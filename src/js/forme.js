@@ -233,22 +233,22 @@ class Forme {
      * @param {BABYLON.Scene} scene 
      */
     build(scene) {
-    this.sommets.forEach(s => s.build(scene));
-    this.aretes.forEach(a => a.build(scene));
-    this.faces.forEach(f => f.build(scene));
-}
+        this.sommets.forEach(s => s.build(scene));
+        this.aretes.forEach(a => a.build(scene));
+        this.faces.forEach(f => f.build(scene));
+    }
 
     /**
      * Met à jour la forme (points et arêtes) dans l'espace 3D
      */
     update() {
-    this.sommets.forEach(s => s.update());
-    this.aretes.forEach(a => a.update());
-    this.faces.forEach(f => f.update());
+        this.sommets.forEach(s => s.update());
+        this.aretes.forEach(a => a.update());
+        this.faces.forEach(f => f.update());
 
-    if (this.projection2D) this.projection2D.update();
-    if (this.projection3D) this.projection3D.update();
-}
+        if (this.projection2D) this.projection2D.update();
+        if (this.projection3D) this.projection3D.update();
+    }
 
 
     /**

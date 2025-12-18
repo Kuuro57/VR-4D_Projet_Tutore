@@ -1,6 +1,5 @@
 import { Forme } from "./forme.js";
 import { Projection2D } from "./projection2D.js";
-import { projection2D, projection3D } from "./projection/projections.js";
 
 
 // Récupération des canvas
@@ -84,16 +83,9 @@ function initCamera2D(scene) {
     scene
   );
   camera2D.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
-
-  const ratio = canvas2D.clientWidth / canvas2D.clientHeight;
-  const d = 5;
-
-  camera2D.orthoLeft   = -d * ratio;
-  camera2D.orthoRight  =  d * ratio;
-  camera2D.orthoTop    =  d;
-  camera2D.orthoBottom = -d;
-
   camera2D.setTarget(BABYLON.Vector3.Zero());
+
+  updateOrthoCamera(camera2D, canvas2D);
 
   new BABYLON.HemisphericLight(
     "light2D",
@@ -102,6 +94,14 @@ function initCamera2D(scene) {
   );
 }
 
+function updateOrthoCamera(camera, canvas, d = 1) {
+  const ratio = canvas.clientWidth / canvas.clientHeight;
+
+  camera.orthoLeft   = -d * ratio;
+  camera.orthoRight  =  d * ratio;
+  camera.orthoTop    =  d;
+  camera.orthoBottom = -d;
+}
 
 /**
  * Fonction qui crée et retourne la scène
@@ -157,6 +157,10 @@ engine2D.runRenderLoop(() => {
 window.addEventListener("resize", () => {
   engine3D.resize();
   engine2D.resize();
+
+  if (camera2D) {
+    updateOrthoCamera(camera2D, canvas2D);
+  }
 });
 
 
