@@ -163,9 +163,9 @@ class Forme {
         let cube = this.loadCubeFromCenter("cube", new BABYLON.Vector3(0,0,0), size);
         let hypercube = new Forme(name, [], []);
         cube.sommets.forEach(sommet => {
-            let newSommet = new Sommet(sommet.name + "'", new BABYLON.Vector4(sommet.vector.x, sommet.vector.y, sommet.vector.z, -size/2));
+            let newSommet = new Sommet(sommet.name + "'", new BABYLON.Vector4(sommet.vector.x, sommet.vector.y, sommet.vector.z, 0));
             //sommet du cube original
-            hypercube.sommets.push(new Sommet(sommet.name, new BABYLON.Vector4(sommet.vector.x, sommet.vector.y, sommet.vector.z, size/2)));
+            hypercube.sommets.push(new Sommet(sommet.name, new BABYLON.Vector4(sommet.vector.x, sommet.vector.y, sommet.vector.z, size)));
             //sommet miroir
             hypercube.sommets.push(newSommet);
         });
@@ -317,6 +317,35 @@ class Forme {
         // Création de la nouvelle forme clonée
         return new Forme(this.name + "_copy", newListSommets, newListAretes);
 
+    }
+
+    delete() {
+        if(this.sommets){
+            this.sommets.forEach(sommet => {
+                if(sommet.mesh)
+                    sommet.mesh.dispose();
+            });
+        }
+
+        if(this.aretes){
+        this.aretes.forEach(arete => {
+                if(arete.mesh)
+                    arete.mesh.dispose();
+            });
+        }
+
+        if(this.faces){
+            this.faces.forEach(face => {
+                if(face.mesh)
+                    face.mesh.dispose();
+            });
+        }
+
+        if(this.projection2D)
+            this.projection2D.delete();
+
+        if(this.projection3D)
+            this.projection3D.delete();
     }
 
 }

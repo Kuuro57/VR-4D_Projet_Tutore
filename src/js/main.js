@@ -72,12 +72,7 @@ const createScene = () => {
     // });
 
     forme3D = Forme.loadCubeFromCenter("CubeCenter", new BABYLON.Vector3(0,0,0), 1);
-    forme3D.build(scene);
-    projection2D(forme3D, camera);
-
-    //forme4D = Forme.loadHyperCubeFromCube("Hypercube", new BABYLON.Vector4(0,0,0,0), 1);
-    //projection3D(forme4D, camera);
-    //console.log(forme4D);
+    forme4D = Forme.loadHyperCubeFromCube("Hypercube", new BABYLON.Vector4(0,0,0,0), 1);
 
     return scene;
 
@@ -101,6 +96,7 @@ window.addEventListener("resize", () => {
 // Export
 export {
   forme3D,
+  forme4D,
   camera,
   scene
 };

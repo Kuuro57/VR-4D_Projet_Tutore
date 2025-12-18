@@ -36,35 +36,27 @@ function projection2D(forme3D, camera, focal = 4) {
 
 }
 
-function projection3D(forme4D, camera, focal = 0.5) {
-    let forme4DClone = forme4D.getClone();
+function projection3D(forme4D, camera) {
+    const focal = 1.0;
+    const wCam  = 2.0;
 
-    let forme3D = new Projection3D(forme4DClone.name, forme4DClone.sommets, forme4DClone.aretes);
+    const forme4DClone = forme4D.getClone();
+    const forme3D = new Projection3D(forme4DClone.name, forme4DClone.sommets, forme4DClone.aretes);
 
-    forme3D.sommets.forEach(sommet => {
-
-        // Calcul de la position relative du sommet par rapport à la caméra
-        let relativeX = sommet.vector.x - camera.position.x;
-        let relativeY = sommet.vector.y - camera.position.y;
-        let relativeZ = sommet.vector.z - camera.position.z;
-        let relativeW = sommet.vector.w - 0; // Supposons que la caméra est à w=0
-
-        // Empêcher la division par zéro
-        if (relativeW <= 0.1) relativeW = 0.1;
-
-        // Application de la projection
-        let x3D = (relativeX / relativeW) * focal;
-        let y3D = (relativeY / relativeW) * focal;
-        let z3D = (relativeZ / relativeW) * focal;
-
-        sommet.vector = new BABYLON.Vector3(x3D, y3D, z3D);
-
+    forme3D.sommets.forEach(s4 => {
+    const scale = focal / (wCam - s4.vector.w);
+    s4.vector = new BABYLON.Vector3(
+        s4.vector.x * scale,
+        s4.vector.y * scale,
+        s4.vector.z * scale
+    );
     });
 
     forme3D.build();
     forme3D.formeParente = forme4D;
     forme4D.projection3D = forme3D;
 }
+
 
 
 

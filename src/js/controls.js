@@ -1,7 +1,9 @@
-import {forme3D} from "./main.js";
+import {forme3D, forme4D, camera} from "./main.js";
 import { rotation3D } from "./transformations/rotations.js";
 import { translation } from "./transformations/translations.js";
 import { homothetie3D } from "./transformations/homothetie.js";
+import { Projection2D } from "./projection2D.js";
+import { projection2D, projection3D } from "./projection/projections.js";
 
 // CONSTANTES
 const timers = {
@@ -18,6 +20,13 @@ var idIntervalHomothetie = null;
 
 let facesVisible = true;
 let wireVisible = true;
+let forme = forme3D;
+
+//par défaut, on affiche la forme 3D
+forme.build();
+projection2D(forme, camera);
+
+
 
 /**
  * Méthode qui active ou désactive la rotation de la forme
@@ -26,7 +35,7 @@ let wireVisible = true;
  * @returns 
  */
 function toggleRotation(axis, btnId) {
-    if (!forme3D) return;
+    if (!forme) return;
 
     const btn = document.getElementById(btnId);
 
@@ -42,7 +51,7 @@ function toggleRotation(axis, btnId) {
     else {
 
         timers[axis] = setInterval(() => {
-          rotation3D(forme3D, axis);
+          rotation3D(forme, axis);
         }, 10);
         btn.textContent = `Stop ${axis.toUpperCase()}`;
       
@@ -64,12 +73,12 @@ function startTranslation(axis, direction) {
     if (translationTimers[key]) return;
 
     translationTimers[key] = setInterval(() => {
-      if (!forme3D) return;
+      if (!forme) return;
 
-      const v = new BABYLON.Vector3(0, 0, 0);
+      const v = new BABYLON.Vector4(0, 0, 0, 0);
       v[axis] = direction === "+" ? STEP : -STEP;
 
-      translation(forme3D, v);
+      translation(forme, v);
     }, INTERVAL);
 }
 
@@ -98,11 +107,11 @@ function stopTranslation(axis, direction) {
  * @returns 
  */
 function startHomothetie(direction) {
-    if (!forme3D) return;
+    if (!forme) return;
 
     idIntervalHomothetie = setInterval(() => {
       let factor = direction === "+" ? 1.01 : 0.99;
-        homothetie3D(forme3D, factor);
+        homothetie3D(forme, factor);
     }, INTERVAL);
 }
 
@@ -188,20 +197,34 @@ window.addEventListener("DOMContentLoaded", () => {
   const btnFaces = document.getElementById("btn-faces-toggle");
 
   btnFaces.addEventListener("click", () => {
-    if (!forme3D) return;
+    if (!forme) return;
 
     facesVisible = !facesVisible;
-    forme3D.toggleFaces(facesVisible);
+    forme.toggleFaces(facesVisible);
 
     btnFaces.textContent = facesVisible ? "Cacher faces" : "Afficher faces";
   });
   document.getElementById("btn-wire-toggle").addEventListener("click", () => {
-    if (!forme3D) return;
+    if (!forme) return;
 
     wireVisible = !wireVisible;
-    forme3D.toggleWireframe(wireVisible);
+    forme.toggleWireframe(wireVisible);
 
     const btn = document.getElementById("btn-wire-toggle");
     btn.textContent = wireVisible ? "Cacher sommets & arêtes" : "Afficher sommets & arêtes";
   });
+  
+  addEventListener("keypress", (event) => {
+    if (event.key === "p") {
+      forme.delete()
+      forme = forme4D;
+      projection3D(forme, camera);
+    } else if (event.key === "o") {
+      forme.delete()
+      forme = forme3D;
+      forme.build();
+      projection2D(forme, camera);
+    }
+  });
+
 });
