@@ -1,5 +1,6 @@
 import { Forme } from "./forme.js";
 import { projection2D, projection3D } from "./projection/projections.js";
+import { initControls } from "./controls.js";
 
 
 // Récupération du canvas
@@ -78,6 +79,8 @@ const createScene = () => {
     //forme4D = Forme.loadHyperCubeFromCube("Hypercube", new BABYLON.Vector4(0,0,0,0), 1);
     //projection3D(forme4D, camera);
     //console.log(forme4D);
+
+    initControls(forme3D);
 
     return scene;
 
