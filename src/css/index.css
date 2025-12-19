@@ -130,3 +130,42 @@ html, body {
   height: 30%;
   border: 2px solid white;
 }
+
+#kbd-hint{
+  position: absolute;
+  left: 12px;
+  top: 461px; /* juste sous btn-wire-toggle (417px) */
+  z-index: 10;
+
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(20, 20, 24, 0.65);
+  color: rgba(255,255,255,0.9);
+  font: 500 13px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+  padding: 8px 12px;
+  border-radius: 10px;
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+}
+
+#kbd-hint .kbd{
+  display: inline-block;
+  min-width: 18px;
+  text-align: center;
+
+  padding: 2px 7px;
+  margin: 0 2px;
+
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.22);
+  background: rgba(40, 40, 48, 0.85);
+  color: #fff;
+  font-weight: 700;
+}
+
+.kbd-inside{
+  display: block;
+  margin-bottom: 4px;
+}
