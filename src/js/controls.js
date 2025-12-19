@@ -137,11 +137,7 @@ function startHomothetie(forme, direction) {
 
   timersHomothetie[direction] = setInterval(() => {
     const factor = direction === "+" ? 1.01 : 0.99;
-<<<<<<< HEAD
     homothetie(target, factor);
-=======
-    homothetie3D(target, factor);
->>>>>>> 9dd780e36a33ccfe177d6feb7216d236cdaf0041
   }, INTERVAL);
 }
 
