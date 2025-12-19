@@ -1,5 +1,7 @@
 import {Forme} from "../forme.js";
 
+//TODO changement de l'épaisseur des projections
+
 /**
  * Methode pour effectuer une homothétie sur une forme 3D
  * 

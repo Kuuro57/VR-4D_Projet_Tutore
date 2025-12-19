@@ -1,5 +1,4 @@
 import { Forme } from "./forme.js";
-import { camera } from "./main.js";
 
 /**
  * Classe représentant une projection 3D d'une forme 4D
@@ -18,9 +17,10 @@ class Projection3D extends Forme {
      * @param {Sommet[]} sommetsParameters 
      * @param {Arete[]} aretesParameters 
      */
-    constructor(nom, sommetsParameters, aretesParameters) {
-        super(nom, sommetsParameters, aretesParameters);
-    }
+    constructor(nom, sommets, aretes, camera3D) {
+    super(nom, sommets, aretes);
+    this.camera3D = camera3D;
+  }
 
 
 
@@ -45,6 +45,7 @@ class Projection3D extends Forme {
 
         this.aretes.forEach(a => a.update());
         this.faces.forEach(f => f.update?.());
+        if (this.projection2D) this.projection2D.update();
     }
 
 

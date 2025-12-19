@@ -1,5 +1,3 @@
-import { scene } from "./main.js";
-
 /**
  * Classe représentant un sommet dans un espace 3D
  */
@@ -50,17 +48,23 @@ class Sommet {
     /**
      * Méthode qui construit le sommet dans la scène
      */
-    build() {
-        const redMat = new BABYLON.StandardMaterial("redMat", scene);
-        redMat.diffuseColor = BABYLON.Color3.Red();
+    build(scene) {
+    const redMat = new BABYLON.StandardMaterial("redMat", scene);
+    redMat.diffuseColor = BABYLON.Color3.Red();
 
-        const sphere = BABYLON.MeshBuilder.CreateSphere(`sphere${this.name}`, { diameter: this.baseDiameter, segments: 32 }, scene);
-        sphere.position.set(this.vector.x, this.vector.y, this.vector.z);
-        sphere.scaling.setAll(this.scale);
-        sphere.material = redMat;
+    const sphere = BABYLON.MeshBuilder.CreateSphere(
+        `sphere${this.name}`,
+        { diameter: this.baseDiameter, segments: 32 },
+        scene
+    );
 
-        this.mesh = sphere;
+    sphere.position.copyFrom(this.vector);
+    sphere.scaling.setAll(this.scale);
+    sphere.material = redMat;
+
+    this.mesh = sphere;
     }
+
 
 
 
@@ -75,7 +79,6 @@ class Sommet {
     }
 
 }
-
 
 
 // Export de la classe

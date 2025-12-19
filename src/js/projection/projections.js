@@ -1,5 +1,7 @@
 import { Projection2D } from "../projection2D.js";
 import { Projection3D } from "../projection3D.js";
+import { Sommet } from "../sommet.js";
+import { Arete } from "../arete.js";
 
 /**
  * Projette une forme 3D dans un espace 2D
@@ -7,54 +9,53 @@ import { Projection3D } from "../projection3D.js";
  * @param {BABYLON.Camera} camera
  * @param {Number} focal Distance focale
  */
-function projection2D(forme3D, camera, focal = 4) {
-    
-    let forme3DClone = forme3D.getClone();
-    let forme2D = new Projection2D(forme3DClone.name, forme3DClone.sommets, forme3DClone.aretes);
+function projection2D(forme3D, camera2D, scene2D) {
 
-    forme2D.sommets.forEach(sommet => {
+  // nettoie l'ancienne si elle existe
+  if (forme3D.projection2D) {
+    forme3D.projection2D.delete?.();
+    forme3D.projection2D = null;
+  }
 
-        // Calcul de la position relative du sommet par rapport à la caméra
-        let relativeX = sommet.vector.x - camera.position.x;
-        let relativeY = sommet.vector.y - camera.position.y;
-        let relativeZ = sommet.vector.z - camera.position.z;
+  const clone = forme3D.getClone();
 
-        // Empêcher la division par zéro
-        if (relativeZ <= 0.1) relativeZ = 0.1; 
+  // IMPORTANT : on passe bien camera2D + on build dans scene2D
+  const proj2D = new Projection2D(`${forme3D.name}_2D`, clone.sommets, clone.aretes, camera2D);
+  proj2D.formeParente = forme3D;
 
-        // Application de la projection
-        let x2D = (relativeX / relativeZ) * focal;
-        let y2D = (relativeY / relativeZ) * focal;
+  forme3D.projection2D = proj2D;
 
-        sommet.vector = new BABYLON.Vector3(x2D, y2D, 0);
+  proj2D.build(scene2D);
+  proj2D.update();
 
-    });
-
-    forme2D.build();
-    forme2D.formeParente = forme3D;
-    forme3D.projection2D = forme2D;
-
+  return proj2D;
 }
 
-function projection3D(forme4D, camera) {
-    const focal = 1.0;
-    const wCam  = 2.0;
 
-    const forme4DClone = forme4D.getClone();
-    const forme3D = new Projection3D(forme4DClone.name, forme4DClone.sommets, forme4DClone.aretes);
+function projection3D(forme4D, camera3D, scene3D) {
 
-    forme3D.sommets.forEach(s4 => {
-    const scale = focal / (wCam - s4.vector.w);
-    s4.vector = new BABYLON.Vector3(
-        s4.vector.x * scale,
-        s4.vector.y * scale,
-        s4.vector.z * scale
-    );
-    });
+  // nettoie l'ancienne si elle existe
+  if (forme4D.projection3D) {
+    forme4D.projection3D.delete?.();
+    forme4D.projection3D = null;
+  }
 
-    forme3D.build();
-    forme3D.formeParente = forme4D;
-    forme4D.projection3D = forme3D;
+  const clone = forme4D.getClone();
+
+  // IMPORTANT : la projection 3D doit avoir des Vector3 (Babylon tubes/spheres)
+  const sommets3D = clone.sommets.map(s => new Sommet(s.name, new BABYLON.Vector3(0, 0, 0)));
+  const getS = (name) => sommets3D.find(s => s.name === name);
+  const aretes3D = clone.aretes.map(a => new Arete(a.name, getS(a.sommet1.name), getS(a.sommet2.name)));
+
+  const proj3D = new Projection3D(`${forme4D.name}_3D`, sommets3D, aretes3D, camera3D);
+  proj3D.formeParente = forme4D;
+
+  forme4D.projection3D = proj3D;
+
+  proj3D.build(scene3D);
+  proj3D.update();
+
+  return proj3D;
 }
 
 

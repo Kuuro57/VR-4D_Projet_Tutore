@@ -1,5 +1,4 @@
 import { Sommet } from "./sommet.js";
-import { scene } from "./main.js";
 
 /**
  * Classe qui représente une arête d'une forme géométrique 3D
@@ -55,37 +54,43 @@ class Arete {
     /**
      * Méthode qui permet de construire l'arête sur la scène
      */
-    build() {
+    build(scene) {
 
-        // Initialisation du matériau
-        const edgesMat = new BABYLON.StandardMaterial(`${this.name}_edgesMat`, scene);
-        edgesMat.diffuseColor = BABYLON.Color3.Blue();
+    const edgesMat = new BABYLON.StandardMaterial(`${this.name}_edgesMat`, scene);
+    edgesMat.diffuseColor = BABYLON.Color3.Blue();
 
-        // Options d'affichage de l'arête
-        var options = {
-            path: [this.sommet1.vector, this.sommet2.vector],
-            updatable: true,
-            radius: this.radius
-        }
+    const options = {
+        path: [this.sommet1.vector, this.sommet2.vector],
+        updatable: true,
+        radius: this.radius
+    };
 
-        // Construction de l'arête sur la scène Babylon
-        const tube = BABYLON.MeshBuilder.CreateTube(`${this.name}_tube`, options, scene);
-        tube.material = edgesMat;
+    const tube = BABYLON.MeshBuilder.CreateTube(
+        `${this.name}_tube`,
+        options,
+        scene
+    );
 
-        this.mesh = tube;
+    tube.material = edgesMat;
+    this.mesh = tube;
+}
 
-    }
 
     /**
      * Met à jour la position de l'arête dans l'espace 3D
      */
     update() {
-        if (this.mesh == null) return;
+        if (!this.mesh) return;
 
         const path = [this.sommet1.vector, this.sommet2.vector];
-        BABYLON.MeshBuilder.CreateTube(this.name, { path, instance: this.mesh, radius: this.radius }, scene);
-    }
+        const scene = this.mesh.getScene();
 
+        BABYLON.MeshBuilder.CreateTube(
+            this.mesh.name,                 // important : même nom que le mesh
+            { path, instance: this.mesh, radius: this.radius },
+            scene
+        );
+    }
 }
 
 

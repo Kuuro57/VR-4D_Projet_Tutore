@@ -1,56 +1,137 @@
-import {forme3D, forme4D, camera} from "./main.js";
+import {forme3D, forme4D} from "./main.js";
 import { rotation3D } from "./transformations/rotations.js";
 import { translation } from "./transformations/translations.js";
 import { homothetie3D } from "./transformations/homothetie.js";
 import { Projection2D } from "./projection2D.js";
 import { projection2D, projection3D } from "./projection/projections.js";
 
+
+
+
+var facesVisible = false;
+var wireVisible = false;
+
+
+/**
+ * 
+ * @param {*} forme 
+ */
+function initControls({ forme3D, forme4D, camera3D, camera2D, scene3D, scene2D }) {
+
+    let forme = forme3D;
+
+    document.getElementById("btn-rotation-x").addEventListener("click", () => toggleRotation(forme, "x", "btn-rotation-x"));
+    document.getElementById("btn-rotation-y").addEventListener("click", () => toggleRotation(forme, "y", "btn-rotation-y"));
+    document.getElementById("btn-rotation-z").addEventListener("click", () => toggleRotation(forme, "z", "btn-rotation-z"));
+
+    document.getElementById("tx-plus").addEventListener("mousedown", () => toggleTranslation(forme, "x", "+"));
+    document.getElementById("tx-plus").addEventListener("mouseup", () => toggleTranslation(forme, "x", "+"));
+
+    document.getElementById("tx-minus").addEventListener("mousedown", () => toggleTranslation(forme, "x", "-"));
+    document.getElementById("tx-minus").addEventListener("mouseup", () => toggleTranslation(forme, "x", "-"));
+
+    document.getElementById("ty-plus").addEventListener("mousedown", () => toggleTranslation(forme, "y", "+"));
+    document.getElementById("ty-plus").addEventListener("mouseup", () => toggleTranslation(forme, "y", "+"));
+
+    document.getElementById("ty-minus").addEventListener("mousedown", () => toggleTranslation(forme, "y", "-"));
+    document.getElementById("ty-minus").addEventListener("mouseup", () => toggleTranslation(forme, "y", "-"));
+
+    document.getElementById("tz-plus").addEventListener("mousedown", () => toggleTranslation(forme, "z", "+"));
+    document.getElementById("tz-plus").addEventListener("mouseup", () => toggleTranslation(forme, "z", "+"));
+
+    document.getElementById("tz-minus").addEventListener("mousedown", () => toggleTranslation(forme, "z", "-"));
+    document.getElementById("tz-minus").addEventListener("mouseup",   () => toggleTranslation(forme, "z", "-"));
+
+    document.getElementById("homothetie-plus").addEventListener("mousedown", () => toggleHomotethie(forme, "+"));
+    document.getElementById("homothetie-plus").addEventListener("mouseup", () => toggleHomotethie(forme, "+"));
+
+    document.getElementById("homothetie-minus").addEventListener("mousedown", () => toggleHomotethie(forme, "-"));
+    document.getElementById("homothetie-minus").addEventListener("mouseup", () => toggleHomotethie(forme, "-"));
+
+    document.getElementById("btn-faces-toggle").addEventListener("click", (event) => {
+      
+      forme.toggleFaces(facesVisible);
+
+      if (facesVisible) event.target.textContent = "Cacher les faces";
+      else event.target.textContent = "Afficher les faces";
+      facesVisible = !facesVisible;
+      
+    });
+
+    document.getElementById("btn-wire-toggle").addEventListener("click", (event) => {
+      
+      forme.toggleWireframe(wireVisible);
+
+      if (wireVisible) event.target.textContent = "Cacher la vue fil de fer";
+      else event.target.textContent = "Afficher la vue fil de fer";
+      wireVisible = !wireVisible;
+
+    });
+
+    addEventListener("keypress", (event) => {
+      if (event.key === "p") {
+        forme.delete?.();
+
+        // projection3D au centre
+        const proj3D = projection3D(forme4D, camera3D, scene3D);
+
+        // projection2D dans le coin
+        projection2D(proj3D, camera2D, scene2D);
+
+        forme = proj3D;
+      }
+
+      else if (event.key === "o") {
+        forme.delete?.();
+
+        // forme3D au centre
+        forme = forme3D;
+        forme.build(scene3D);
+
+        // projection2D dans le coin
+        projection2D(forme3D, camera2D, scene2D);
+      }
+    });
+
+};
+
+
+
+
+
+
+
 // CONSTANTES
-const timers = {
+const timersRotation = {
   x: null,
   y: null,
   z: null,
 };
 
-const translationTimers = {};
-const STEP = 0.05;
-const INTERVAL = 16;
-
-var idIntervalHomothetie = null;
-
-let facesVisible = true;
-let wireVisible = true;
-let forme = forme3D;
-
-//par défaut, on affiche la forme 3D
-forme.build();
-projection2D(forme, camera);
-
-
-
 /**
  * Méthode qui active ou désactive la rotation de la forme
+ * @param {Forme} forme Forme que l'on veut tourner 
  * @param {*} axis Axe selon lequel on veut activer ou désactier la rotation de la forme
  * @param {*} btnId Id du bouton sur lequel on vient d'appuier
  * @returns 
  */
-function toggleRotation(axis, btnId) {
+function toggleRotation(forme, axis, btnId) {
     if (!forme) return;
 
     const btn = document.getElementById(btnId);
 
     // Si déjà en rotation => stop
-    if (timers[axis] !== null) {
+    if (timersRotation[axis] !== null) {
       
-        clearInterval(timers[axis]);
-        timers[axis] = null;
+        clearInterval(timersRotation[axis]);
+        timersRotation[axis] = null;
         btn.textContent = `Rotation ${axis.toUpperCase()}`;
 
     }
     // Sinon => start
     else {
 
-        timers[axis] = setInterval(() => {
+        timersRotation[axis] = setInterval(() => {
           rotation3D(forme, axis);
         }, 10);
         btn.textContent = `Stop ${axis.toUpperCase()}`;
@@ -62,169 +143,98 @@ function toggleRotation(axis, btnId) {
 
 
 
+
+
+
+
+// CONSTANTES
+const timersTranslation = {
+  "x+": null,
+  "x-": null,
+  "y+": null,
+  "y-": null,
+  "z+": null,
+  "z-": null
+};
+const STEP = 0.05;
+const INTERVAL = 16;
+
 /**
- * Méthode qui lance la translation de la forme
+ * Méthode qui lance ou arrête la translation de la forme
  * @param {*} axis Axe selon la forme se déplace
  * @param {*} direction Direction (droite ou gauche = "+" ou "-")
  * @returns 
  */
-function startTranslation(axis, direction) {
-    const key = axis + direction;
-    if (translationTimers[key]) return;
+function toggleTranslation(forme, axis, direction) {
+  if (!forme) return;
 
-    translationTimers[key] = setInterval(() => {
-      if (!forme) return;
+  const target = getTransformTarget(forme);
 
-      const v = new BABYLON.Vector4(0, 0, 0, 0);
+  let key = axis + direction;
+  if (timersTranslation[key]) {
+    clearInterval(timersTranslation[key]);
+    timersTranslation[key] = null;
+  } else {
+    timersTranslation[key] = setInterval(() => {
+
+      // vecteur de translation compatible Vector3 / Vector4
+      const v0 = target.sommets?.[0]?.vector;
+      const v = (v0 instanceof BABYLON.Vector4)
+        ? new BABYLON.Vector4(0, 0, 0, 0)
+        : new BABYLON.Vector3(0, 0, 0);
+
       v[axis] = direction === "+" ? STEP : -STEP;
 
-      translation(forme, v);
+      translation(target, v);
+
     }, INTERVAL);
-}
-
-
-
-/**
- * Méthode qui arrête la translation de la forme
- * @param {*} axis Axe sur lequel la forme se déplace
- * @param {*} direction Direction (droite ou gauche = "+" ou "-")
- */
-function stopTranslation(axis, direction) {
-  const key = axis + direction;
-  clearInterval(translationTimers[key]);
-  translationTimers[key] = null;
+  }
 }
 
 
 
 
-
-
+// CONSTANTES
+const timersHomotethie = {
+  "+": null,
+  "-": null
+};
 
 /**
- * Méthode qui lance l'opération d'homothétie sur la forme
- * @param {*} direction "+" => aggrandir / "-" => rapetissir
+ * Méthode qui lance ou arrête l'opération d'homotéthie
+ * @param {*} forme Forme sur laquelle on veut appliquer l'homothétie
+ * @param {*} direction "+" => aggrandir, "-" => rapetissir
  * @returns 
  */
-function startHomothetie(direction) {
-    if (!forme) return;
+function toggleHomotethie(forme, direction) {
+  if (!forme) return;
 
-    idIntervalHomothetie = setInterval(() => {
-      let factor = direction === "+" ? 1.01 : 0.99;
-        homothetie3D(forme, factor);
+  const target = getTransformTarget(forme);
+
+  if (timersHomotethie[direction]) {
+    clearInterval(timersHomotethie[direction]);
+    timersHomotethie[direction] = null;
+  } else {
+    timersHomotethie[direction] = setInterval(() => {
+      const factor = direction === "+" ? 1.01 : 0.99;
+      homothetie3D(target, factor);
     }, INTERVAL);
+  }
 }
-
-
 
 /**
- * Méthode qui stop l'opération d'homothétie
+ * Helper pour récupérer la bonne forme à transformer
+ * (forme4D si on essaie de tourner sa projection3D)
+ * @param {*} forme 
+ * @returns 
  */
-function stopHomothetie() {
-
-    clearInterval(idIntervalHomothetie);
-    idIntervalHomothetie = null;
-
+function getTransformTarget(forme) {
+  return forme?.formeParente ?? forme;
 }
 
 
 
-/**
- * Méthode qui ajoute les listeners sur les boutons "+" et "-" de l'opération d'homothétie
- * @param {*} id Id du bouton "+" ou "-"
- * @param {*} direction +" => aggrandir / "-" => rapetissir
- */
-function bindHomothetieButton(id, direction) {
-  
-    const btn = document.getElementById(id);
-    let factor = direction === "+" ? 1.1 : 0.9;
 
-    btn.addEventListener("mousedown", () => startHomothetie(direction));
-    btn.addEventListener("mouseup", () => stopHomothetie());
-    btn.addEventListener("mouseleave", () => stopHomothetie());
-
+export {
+  initControls
 }
-
-// On relie les boutons aux fonctions
-bindHomothetieButton("homothetie-plus", "+");
-bindHomothetieButton("homothetie-minus", "-");
-
-
-
-/**
- * Méthode qui ajoute les listeners sur les boutons "+" et "-" de l'opération de translation
- * @param {*} id Id du bouton
- * @param {*} axis Axe sur lequel on translate
- * @param {*} dir Direction (droite ou gauche = "+" ou "-")
- */
-function bindTranslationButton(id, axis, dir) {
-  const btn = document.getElementById(id);
-
-  btn.addEventListener("mousedown", () => startTranslation(axis, dir));
-  btn.addEventListener("mouseup", () => stopTranslation(axis, dir));
-  btn.addEventListener("mouseleave", () => stopTranslation(axis, dir));
-
-}
-
-// On relie les boutons aux fonctions
-bindTranslationButton("tx-plus", "x", "+");
-bindTranslationButton("tx-minus", "x", "-");
-bindTranslationButton("ty-plus", "y", "+");
-bindTranslationButton("ty-minus", "y", "-");
-bindTranslationButton("tz-plus", "z", "+");
-bindTranslationButton("tz-minus", "z", "-");
-
-
-
-
-// Ajout des listeners pour les boutons qui permettent de tourner la forme
-window.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("btn-rotation-x").addEventListener("click", () => {
-        toggleRotation("x", "btn-rotation-x");
-    });
-
-    document.getElementById("btn-rotation-y").addEventListener("click", () => {
-        toggleRotation("y", "btn-rotation-y");
-    });
-
-    document.getElementById("btn-rotation-z").addEventListener("click", () => {
-        toggleRotation("z", "btn-rotation-z");
-    });
-});
-
-// Ajout des listeners pour les boutons qui permettent d'afficher/cacher les faces et le fil de fer
-window.addEventListener("DOMContentLoaded", () => {
-  const btnFaces = document.getElementById("btn-faces-toggle");
-
-  btnFaces.addEventListener("click", () => {
-    if (!forme) return;
-
-    facesVisible = !facesVisible;
-    forme.toggleFaces(facesVisible);
-
-    btnFaces.textContent = facesVisible ? "Cacher faces" : "Afficher faces";
-  });
-  document.getElementById("btn-wire-toggle").addEventListener("click", () => {
-    if (!forme) return;
-
-    wireVisible = !wireVisible;
-    forme.toggleWireframe(wireVisible);
-
-    const btn = document.getElementById("btn-wire-toggle");
-    btn.textContent = wireVisible ? "Cacher sommets & arêtes" : "Afficher sommets & arêtes";
-  });
-  
-  addEventListener("keypress", (event) => {
-    if (event.key === "p") {
-      forme.delete()
-      forme = forme4D;
-      projection3D(forme, camera);
-    } else if (event.key === "o") {
-      forme.delete()
-      forme = forme3D;
-      forme.build();
-      projection2D(forme, camera);
-    }
-  });
-
-});
