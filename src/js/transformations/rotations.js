@@ -2,10 +2,11 @@ import { Forme } from "../forme.js";
 import { matriceRotationX, matriceRotationY, matriceRotationZ } from "./matrices.js";
 
 /**
- * Fonction qui pivote une forme 3D sur un axe donné selon un angle donné
- * @param {Forme} forme Forme 3D sur laquelle on veut appliquer la rotation
- * @param {String} axe Axe selon lequelle on va faire pivoter la forme
- * @param {Number} angle Angle (en degrés)
+ * Méthode qui applique une rotation 3D à une forme selon un axe donné
+ *  (selon un angle fixe défini dans matrices.js)
+ * @param {Forme} forme 
+ * @param {String} axe 
+ * @returns 
  */
 function rotation3D (forme, axe) {
 

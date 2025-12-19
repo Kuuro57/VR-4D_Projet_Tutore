@@ -1,13 +1,15 @@
 import {forme3D, forme4D} from "./main.js";
 import { rotation3D } from "./transformations/rotations.js";
 import { translation } from "./transformations/translations.js";
-import { homothetie3D } from "./transformations/homothetie.js";
+import { homothetie } from "./transformations/homothetie.js";
 import { Projection2D } from "./projection2D.js";
 import { projection2D, projection3D } from "./projection/projections.js";
 
 
 
-
+/**
+ * Variables pour l'affichage de la forme
+ */
 var facesVisible = false;
 var wireVisible = false;
 
@@ -26,27 +28,48 @@ function initControls({ forme3D, forme4D, camera3D, camera2D, scene3D, scene2D }
 
     document.getElementById("tx-plus").addEventListener("mousedown", () => toggleTranslation(forme, "x", "+"));
     document.getElementById("tx-plus").addEventListener("mouseup", () => toggleTranslation(forme, "x", "+"));
+    document.getElementById("tx-plus").addEventListener("mouseleave", () => stopTranslation("x", "+"));
 
     document.getElementById("tx-minus").addEventListener("mousedown", () => toggleTranslation(forme, "x", "-"));
     document.getElementById("tx-minus").addEventListener("mouseup", () => toggleTranslation(forme, "x", "-"));
+    document.getElementById("tx-minus").addEventListener("mouseleave", () => stopTranslation("x", "-"));
 
     document.getElementById("ty-plus").addEventListener("mousedown", () => toggleTranslation(forme, "y", "+"));
     document.getElementById("ty-plus").addEventListener("mouseup", () => toggleTranslation(forme, "y", "+"));
+    document.getElementById("ty-plus").addEventListener("mouseleave", () => stopTranslation("y", "+"));
 
     document.getElementById("ty-minus").addEventListener("mousedown", () => toggleTranslation(forme, "y", "-"));
     document.getElementById("ty-minus").addEventListener("mouseup", () => toggleTranslation(forme, "y", "-"));
+    document.getElementById("ty-minus").addEventListener("mouseleave", () => stopTranslation("y", "-"));
 
     document.getElementById("tz-plus").addEventListener("mousedown", () => toggleTranslation(forme, "z", "+"));
     document.getElementById("tz-plus").addEventListener("mouseup", () => toggleTranslation(forme, "z", "+"));
+    document.getElementById("tz-plus").addEventListener("mouseleave", () => stopTranslation("z", "+"));
 
     document.getElementById("tz-minus").addEventListener("mousedown", () => toggleTranslation(forme, "z", "-"));
-    document.getElementById("tz-minus").addEventListener("mouseup",   () => toggleTranslation(forme, "z", "-"));
+    document.getElementById("tz-minus").addEventListener("mouseup", () => toggleTranslation(forme, "z", "-"));
+    document.getElementById("tz-minus").addEventListener("mouseleave", () => stopTranslation("z", "-"));
 
-    document.getElementById("homothetie-plus").addEventListener("mousedown", () => toggleHomotethie(forme, "+"));
-    document.getElementById("homothetie-plus").addEventListener("mouseup", () => toggleHomotethie(forme, "+"));
+    document.getElementById("homothetie-plus").addEventListener("mousedown", () => { startHomothetie(forme, "+");});
+    document.getElementById("homothetie-plus").addEventListener("mouseup", () => { stopHomothetie("+");});
+    document.getElementById("homothetie-plus").addEventListener("mouseleave", () => { stopHomothetie("+");});
 
-    document.getElementById("homothetie-minus").addEventListener("mousedown", () => toggleHomotethie(forme, "-"));
-    document.getElementById("homothetie-minus").addEventListener("mouseup", () => toggleHomotethie(forme, "-"));
+    document.getElementById("homothetie-minus").addEventListener("mousedown", () => { startHomothetie(forme, "-");});
+    document.getElementById("homothetie-minus").addEventListener("mouseup", () => { stopHomothetie("-");});
+    document.getElementById("homothetie-minus").addEventListener("mouseleave", () => { stopHomothetie("-");});
+
+
+    // arrêt de toutes les translations/homothéties si mouseup en dehors
+    window.addEventListener("mouseup", () => {
+      stopTranslation("x", "+");
+      stopTranslation("x", "-");
+      stopTranslation("y", "+");
+      stopTranslation("y", "-");
+      stopTranslation("z", "+");
+      stopTranslation("z", "-");
+      stopHomothetie("+");
+      stopHomothetie("-");
+    });
 
     document.getElementById("btn-faces-toggle").addEventListener("click", (event) => {
       
@@ -99,14 +122,25 @@ function initControls({ forme3D, forme4D, camera3D, camera2D, scene3D, scene2D }
 
 
 
-
-
 // CONSTANTES
 const timersRotation = {
   x: null,
   y: null,
   z: null,
 };
+
+function startHomothetie(forme, direction) {
+  if (!forme) return;
+  if (timersHomothetie[direction]) return;
+
+  const target = getTransformTarget(forme);
+
+  timersHomothetie[direction] = setInterval(() => {
+    const factor = direction === "+" ? 1.01 : 0.99;
+    homothetie(target, factor);
+  }, INTERVAL);
+}
+
 
 /**
  * Méthode qui active ou désactive la rotation de la forme
@@ -140,8 +174,6 @@ function toggleRotation(forme, axis, btnId) {
 
   
 }
-
-
 
 
 
@@ -191,11 +223,24 @@ function toggleTranslation(forme, axis, direction) {
   }
 }
 
+/**
+ * Fonction helper pour arrêter une translation sans la toggler
+ * @param {*} axis 
+ * @param {*} direction 
+ */
+function stopTranslation(axis, direction) {
+  let key = axis + direction;
+  if (timersTranslation[key]) {
+    clearInterval(timersTranslation[key]);
+    timersTranslation[key] = null;
+  }
+}
+
 
 
 
 // CONSTANTES
-const timersHomotethie = {
+const timersHomothetie = {
   "+": null,
   "-": null
 };
@@ -217,8 +262,19 @@ function toggleHomotethie(forme, direction) {
   } else {
     timersHomotethie[direction] = setInterval(() => {
       const factor = direction === "+" ? 1.01 : 0.99;
-      homothetie3D(target, factor);
+      homothetie(target, factor);
     }, INTERVAL);
+  }
+}
+
+/**
+ * Fonction helper pour arrêter une homothétie sans la toggler
+ * @param {*} direction 
+ */
+function stopHomothetie(direction) {
+  if (timersHomothetie[direction]) {
+    clearInterval(timersHomothetie[direction]);
+    timersHomothetie[direction] = null;
   }
 }
 

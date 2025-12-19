@@ -4,7 +4,7 @@ import { FaceCarre } from "./faceCarre.js";
 import { translation } from "./transformations/translations.js";
 
 /**
- * Classe représentant une forme en 3D
+ * Classe représentant une forme 3D ou 4D
  */
 class Forme {
 
@@ -39,7 +39,7 @@ class Forme {
 
     /**
      * @type {Forme}
-     * Forme représentant la projection 3D de la forme
+     * Forme représentant la projection 3D de la forme (si en 4D)
      */
     projection3D;
 
@@ -55,6 +55,8 @@ class Forme {
         this.aretes = aretesParameters;
     }
 
+
+    //TODO soit retirer, soit completer avec les faces
     /**
      * Constructeur de la forme à partir d'un fichier json
      * @param {String} fichierData 
@@ -80,7 +82,7 @@ class Forme {
      * @param {String} name nom du cube
      * @param {BABYLON.Vector3} vector coordonnées du centre du cube
      * @param {Number} size  taille du cube
-     * @returns 
+     * @returns La forme (cube)
      */
     static loadCubeFromCenter(name,vector,size) {
         const halfSize = size / 2;
@@ -131,6 +133,12 @@ class Forme {
         return forme;
     }
 
+    //TODO Ajouter des faces pour un hypercube
+
+    /**
+     * méthode pour afficher ou cacher les faces de la forme
+     * @param {Boolean} visible 
+     */
     toggleFaces(visible) {
 
         this.faces.forEach(face => {
@@ -141,6 +149,10 @@ class Forme {
         
     }
 
+    /**
+     * méthode qui permet d'afficher ou cacher les wireframes (sommets et arêtes) de la forme
+     * @param {Boolean} visible 
+     */
     toggleWireframe(visible) {
 
         // Sommets (sphères)
@@ -159,9 +171,20 @@ class Forme {
 
     }
     
-    static loadHyperCubeFromCube(name,vector,size) {
+    /**
+     * méthode pour créer un hypercube à partir d'un centre
+     * @param {String} name nom de l'hypercube
+     * @param {BABYLON.Vector4} vector coordonnées du centre de l'hypercube
+     * @param {Number} size taille d'une arête de l'hypercube
+     * @returns La forme (hypercube)
+     */
+    static loadHyperCubeFromCenter(name,vector,size) {
+
+        //création du cube/hypercube au centre (0,0,0)
         let cube = this.loadCubeFromCenter("cube", new BABYLON.Vector3(0,0,0), size);
         let hypercube = new Forme(name, [], []);
+
+        //ajout des sommets (original + miroir) dans l'hypercube
         cube.sommets.forEach(sommet => {
             let newSommet = new Sommet(sommet.name + "'", new BABYLON.Vector4(sommet.vector.x, sommet.vector.y, sommet.vector.z, 0));
             //sommet du cube original
@@ -190,7 +213,8 @@ class Forme {
             hypercube.aretes.push(new Arete(`${sommet.name}${sommetMiroir.name}`, getS(sommet.name), sommetMiroir));
         });
 
-        //relier les arrêtes miroires
+        //relier les arrêtes miroires entre elles
+        //Si sommet A est relié à B dans le cube, alors A' est relié à B' dans l'hypercube
         cube.aretes.forEach(arete => {
             if (!getS(arete.sommet1.name) || !getS(arete.sommet2.name)) {
                 throw new Error("Sommet introuvable pour une arête du cube");
@@ -202,6 +226,7 @@ class Forme {
             hypercube.aretes.push(new Arete(`${arete.name}'`, sommet1Miroir, sommet2Miroir));
         });
 
+        //translation du cube pour le mettre au bon endroit
         translation(hypercube,vector);
 
         return hypercube;
@@ -224,6 +249,7 @@ class Forme {
             sumZ += sommet.vector.z;
         });
 
+        // Gestion de la 4D avec un Vector4
         if(this.sommets[0].vector instanceof BABYLON.Vector4){
             let sumW = 0;
             this.sommets.forEach(sommet => {
@@ -254,25 +280,11 @@ class Forme {
         this.aretes.forEach(a => a.update());
         this.faces.forEach(f => f.update());
 
+        //récursivité sur les projections
         if (this.projection2D) this.projection2D.update();
         if (this.projection3D) this.projection3D.update();
     }
 
-
-    /**
-     * Méthode qui supprime la forme
-     */
-    delete() {
-
-        this.sommets.forEach(sommet => {
-            sommet.mesh.dispose();
-        });
-
-        this.aretes.forEach(arete => {
-            arete.mesh.dispose();
-        });
-
-    }
 
     /**
      * Méthode qui retourne une copie de la forme
@@ -306,7 +318,11 @@ class Forme {
 
     }
 
+    /**
+     * Méthode qui supprime la forme
+     */
     delete() {
+        // Nettoyage des meshes associés aux sommets, arêtes et faces
         if(this.sommets){
             this.sommets.forEach(sommet => {
                 if(sommet.mesh)
@@ -328,6 +344,7 @@ class Forme {
             });
         }
 
+        //suppression récursive des projections
         if(this.projection2D)
             this.projection2D.delete();
 

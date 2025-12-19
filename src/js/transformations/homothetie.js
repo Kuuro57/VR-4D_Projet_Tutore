@@ -3,14 +3,15 @@ import {Forme} from "../forme.js";
 //TODO changement de l'épaisseur des projections
 
 /**
- * Methode pour effectuer une homothétie sur une forme 3D
+ * Methode pour effectuer une homothétie sur une forme (peu importe la dimension)
  * 
  * @param {Forme} forme 
  * @param {Number} factor 
  * @returns 
  */
-function homothetie3D (forme, factor) {
+function homothetie (forme, factor) {
 
+    //homothetie par rapport au centre de la forme
     const center = forme.getVectorCenter();
 
     // Sommets : position + taille
@@ -32,5 +33,5 @@ function homothetie3D (forme, factor) {
 
 // Export
 export {
-    homothetie3D
+    homothetie
 }

@@ -25,13 +25,16 @@ class Projection3D extends Forme {
 
 
     /**
-     * Met à jour la forme (points et arêtes) dans l'espace 3D
+     * Méthode qui met à jour la projection 3D en fonction de la forme 4D parente
      */
     update() {
         const focal = 1.0;
-        const wCam  = 2.0;      // IMPORTANT : > max(|w|)
+        const wCam  = 2.0;
+
+        //helper pour retrouver les sommets par leur nom
         const getS = (name) => this.sommets.find(s => s.name === name);
 
+        // projection 4D -> 3D
         this.formeParente.sommets.forEach(s4 => {
             const denom = (wCam - s4.vector.w);
             const scale = focal / denom;
@@ -43,8 +46,11 @@ class Projection3D extends Forme {
             s3.update();
         });
 
+        // mise à jour des arêtes et faces
         this.aretes.forEach(a => a.update());
         this.faces.forEach(f => f.update?.());
+        
+        // mise à jour récursive des projections
         if (this.projection2D) this.projection2D.update();
     }
 

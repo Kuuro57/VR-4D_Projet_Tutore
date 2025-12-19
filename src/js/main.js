@@ -64,6 +64,10 @@ function initCameraFixed(scene) {
   new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0), scene);
 }
 
+/**
+ * Méthode qui initialise la caméra 3D (orbitale) et la lumière
+ * @param {BABYLON.Scene} scene 
+ */
 function initCamera3D(scene) {
   camera3D = new BABYLON.ArcRotateCamera(
     "Camera3D",
@@ -78,6 +82,10 @@ function initCamera3D(scene) {
   new BABYLON.HemisphericLight("light3D", new BABYLON.Vector3(1, 1, 0), scene);
 }
 
+/**
+ * Méthode qui initialise la caméra 2D (orthographique) et la lumière
+ * @param {BABYLON.Scene} scene 
+ */
 function initCamera2D(scene) {
   camera2D = new BABYLON.FreeCamera(
     "Camera2D",
@@ -96,6 +104,12 @@ function initCamera2D(scene) {
   );
 }
 
+/**
+ * Méthode qui met à jour les paramètres de la caméra orthographique
+ * @param {BABYLON.Camera} camera 
+ * @param {HTMLCanvasElement} canvas 
+ * @param {number} d 
+ */
 function updateOrthoCamera(camera, canvas, d = 1) {
   const ratio = canvas.clientWidth / canvas.clientHeight;
 
@@ -115,7 +129,7 @@ function createScene() {
     initCamera3D(scene);
 
     forme3D = Forme.loadCubeFromCenter("Cube", BABYLON.Vector3.Zero(), 1);
-    forme4D = Forme.loadHyperCubeFromCube("Hypercube", BABYLON.Vector4.Zero(), 1);
+    forme4D = Forme.loadHyperCubeFromCenter("Hypercube", BABYLON.Vector4.Zero(), 1);
     forme3D.build(scene);
 
     // --- SCENE 2D ---
@@ -173,7 +187,7 @@ window.addEventListener("resize", () => {
 });
 
 
-
+//Exports
 export {
   forme3D,
   forme4D,

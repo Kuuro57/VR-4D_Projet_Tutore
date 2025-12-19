@@ -1,5 +1,5 @@
 /**
- * Classe représentant un sommet dans un espace 3D
+ * Classe représentant un sommet dans un espace de dimension n
  */
 class Sommet {
 
@@ -15,7 +15,7 @@ class Sommet {
 
     /**
      * @type {BABYLON.Mesh} 
-     * Objet physique représentant l'arête dans l'espace 3D
+     * Objet physique représentant l'arête dans l'espace
      */
     mesh;
 
@@ -69,7 +69,7 @@ class Sommet {
 
 
     /**
-     * Met à jour la position du sommet dans l'espace 3D
+     * Met à jour la position du sommet dans l'espace
      */
     update() {
         if (this.mesh == null) return;

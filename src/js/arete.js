@@ -1,7 +1,7 @@
 import { Sommet } from "./sommet.js";
 
 /**
- * Classe qui représente une arête d'une forme géométrique 3D
+ * Classe qui représente une arête d'une forme géométrique dans une dimension n
  */
 class Arete {
 
@@ -25,13 +25,13 @@ class Arete {
 
     /**
      * @type {BABYLON.Mesh} 
-     * Objet physique représentant l'arête dans l'espace 3D
+     * Objet physique représentant l'arête dans l'espace
      */
     mesh;
 
     /**
      * @type {Number} 
-     * Rayon du tube représentant l'arête dans l'espace 3D
+     * Rayon du tube représentant l'arête dans l'espace
      */
     radius = 0.03;
 
@@ -52,7 +52,8 @@ class Arete {
 
 
     /**
-     * Méthode qui permet de construire l'arête sur la scène
+     * Méthode qui construit l'arête dans la scène
+     * @param {BABYLON.Scene} scene 
      */
     build(scene) {
 
@@ -77,7 +78,7 @@ class Arete {
 
 
     /**
-     * Met à jour la position de l'arête dans l'espace 3D
+     * Met à jour la position de l'arête dans l'espace
      */
     update() {
         if (!this.mesh) return;

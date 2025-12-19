@@ -36,11 +36,15 @@ class FaceCarre {
     sommet4;
 
     /**
-     * @type {*} ???
+     * @type {BABYLON.Mesh} 
+     * Objet physique représentant la face carrée dans l'espace
      */
     mesh;
 
-    radius = 0.03;
+    /**
+     * @type {BABYLON.Scene}
+     * Scène sur laquelle la face carrée est construite
+     */
     scene = null;
 
 

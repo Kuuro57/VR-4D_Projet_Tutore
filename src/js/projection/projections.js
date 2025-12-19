@@ -17,9 +17,10 @@ function projection2D(forme3D, camera2D, scene2D) {
     forme3D.projection2D = null;
   }
 
+  // clone de la forme 3D
   const clone = forme3D.getClone();
 
-  // IMPORTANT : on passe bien camera2D + on build dans scene2D
+  // on utilise le clone pour éviter des effets de bord
   const proj2D = new Projection2D(`${forme3D.name}_2D`, clone.sommets, clone.aretes, camera2D);
   proj2D.formeParente = forme3D;
 
@@ -31,7 +32,13 @@ function projection2D(forme3D, camera2D, scene2D) {
   return proj2D;
 }
 
-
+/**
+ * Méthodde qui projette une forme 4D dans un espace 3D
+ * @param {Forme} forme4D 
+ * @param {BABYLON.Camera} camera3D 
+ * @param {BABYLON.Scene} scene3D 
+ * @returns 
+ */
 function projection3D(forme4D, camera3D, scene3D) {
 
   // nettoie l'ancienne si elle existe
@@ -40,18 +47,22 @@ function projection3D(forme4D, camera3D, scene3D) {
     forme4D.projection3D = null;
   }
 
+  // clone de la forme 4D
   const clone = forme4D.getClone();
 
-  // IMPORTANT : la projection 3D doit avoir des Vector3 (Babylon tubes/spheres)
+  //on utilise le clone pour éviter des effets de bord
   const sommets3D = clone.sommets.map(s => new Sommet(s.name, new BABYLON.Vector3(0, 0, 0)));
+  
+  //helper pour retrouver les sommets par leur nom
   const getS = (name) => sommets3D.find(s => s.name === name);
+  
   const aretes3D = clone.aretes.map(a => new Arete(a.name, getS(a.sommet1.name), getS(a.sommet2.name)));
-
   const proj3D = new Projection3D(`${forme4D.name}_3D`, sommets3D, aretes3D, camera3D);
   proj3D.formeParente = forme4D;
 
   forme4D.projection3D = proj3D;
 
+  // construction et mise à jour
   proj3D.build(scene3D);
   proj3D.update();
 
