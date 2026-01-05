@@ -1,171 +1,101 @@
+:root {
+  --bg-panel: rgba(20, 20, 24, 0.85);
+  --border-ui: 1px solid rgba(255, 255, 255, 0.2);
+  --font-main: system-ui, -apple-system, sans-serif;
+}
+
 html, body { 
-  width: 100%; 
-  height: 100%; 
-  margin: 0; 
-  overflow: hidden; 
+  width: 100%; height: 100%; margin: 0; overflow: hidden; 
+  background: #000; font-family: var(--font-main);
 }
 
-#renderCanvas { 
-  width: 100%; 
-  height: 100%; 
-  touch-action: none; 
-  display: block; 
-}
-
-/* Base pour tous les boutons */
-#btn-rotation-x,
-#btn-rotation-y,
-#btn-rotation-z,
-#translation-panel,
-#homothetie-panel,
-#btn-faces-toggle,
-#btn-wire-toggle
-{
-  position: absolute;
-  left: 12px;
-  z-index: 10;
-
-  appearance: none;
-  border: 1px solid rgba(255,255,255,0.18);
-  background: rgba(20, 20, 24, 0.75);
-  color: #fff;
-  font: 600 14px/1.1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-
-  padding: 10px 14px;
-  border-radius: 10px;
-  cursor: pointer;
-  user-select: none;
-
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-
-  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
-}
-
-#btn-rotation-x:hover,
-#btn-rotation-y:hover,
-#btn-rotation-z:hover,
-.axis button:hover
-{
-  background: rgba(40, 40, 48, 0.85);
-  border-color: rgba(255,255,255,0.28);
-  transform: translateY(-1px);
-}
-
-#btn-rotation-x:active,
-#btn-rotation-y:active,
-#btn-rotation-z:active
-{
-  transform: translateY(0);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.22);
-}
-
-#btn-rotation-x:focus-visible,
-#btn-rotation-y:focus-visible,
-#btn-rotation-z:focus-visible
-{
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(100, 150, 255, 0.5), 0 10px 25px rgba(0,0,0,0.25);
-}
-
-/* Placement vertical en pile */
-#btn-rotation-x { top: 12px; }
-#btn-rotation-y { top: 56px; }
-#btn-rotation-z { top: 100px; }
-#translation-panel { top: 144px; }
-#homothetie-panel { top: 294px; }
-#btn-faces-toggle { top: 373px; }
-#btn-wire-toggle { top: 417px; }
-
-#translation-panel,
-#homothetie-panel
-{
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.axis
-{
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.axis span
-{
-  width: 16px;
-  color: #fff;
-  font-weight: bold;
-}
-
-.axis button
-{
-  appearance: none;
-  border: 1px solid rgba(255,255,255,0.18);
-  background: rgba(40, 40, 48, 0.85);
-  color: white;
-  font-size: 14px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-/* Visualisation 3D et 2D */
-
-#renderCanvas3D {
-  position: absolute;
-  left: 0;
-  top: 0;
+/* --- STRUCTURE DES CANVAS --- */
+#container {
+  position: relative;
   width: 100%;
   height: 100%;
 }
 
-#renderCanvas2D {
-  position: absolute/*cinema*/;
+#renderCanvas3D {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Conteneur vertical pour les canvas 2D */
+#sidebar-2d {
+  position: absolute;
   right: 20px;
   top: 20px;
-  width: 30%;
-  height: 30%;
-  border: 2px solid white;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 250px;
 }
 
-#kbd-hint{
+.canvas2D {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: 2px solid white;
+  background: rgba(0,0,0,0.5);
+}
+
+/* --- INTERFACE UTILISATEUR --- */
+#ui-controls {
   position: absolute;
   left: 12px;
-  top: 461px; /* juste sous btn-wire-toggle (417px) */
+  top: 12px;
   z-index: 10;
-
-  border: 1px solid rgba(255,255,255,0.18);
-  background: rgba(20, 20, 24, 0.65);
-  color: rgba(255,255,255,0.9);
-  font: 500 13px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-
-  padding: 8px 12px;
-  border-radius: 10px;
-
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-#kbd-hint .kbd{
-  display: inline-block;
-  min-width: 18px;
-  text-align: center;
-
-  padding: 2px 7px;
-  margin: 0 2px;
-
-  border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.22);
-  background: rgba(40, 40, 48, 0.85);
+/* Style commun Boutons et Panels */
+#ui-controls button, 
+.panel, 
+#kbd-hint {
+  background: var(--bg-panel);
+  border: var(--border-ui);
   color: #fff;
-  font-weight: 700;
+  border-radius: 8px;
+  padding: 10px;
+  backdrop-filter: blur(8px);
 }
 
-.kbd-inside{
-  display: block;
-  margin-bottom: 4px;
+#ui-controls button {
+  cursor: pointer;
+  font-weight: 600;
+  text-align: left;
+}
+
+#ui-controls button:hover {
+  background: rgba(50, 50, 60, 0.9);
+}
+
+/* Panneaux de réglages */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: default;
+}
+
+.label { font-size: 12px; text-transform: uppercase; opacity: 0.8; margin-bottom: 4px; }
+
+.axis { display: flex; align-items: center; gap: 8px; }
+.axis span { width: 12px; font-weight: bold; }
+.axis button { padding: 4px 10px !important; text-align: center !important; }
+
+/* Hint Clavier */
+#kbd-hint h3 { margin: 0 0 8px 0; font-size: 14px; }
+.kbd-inside { margin-bottom: 6px; font-size: 13px; }
+.kbd {
+  background: #444;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #666;
+  font-weight: bold;
 }

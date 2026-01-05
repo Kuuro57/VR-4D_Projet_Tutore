@@ -10,18 +10,39 @@ class Projection2D extends Forme {
      * Forme qui correspond à la forme 3D dont on a fait la projection en 2D
      */
     formeParente;
+
+    /**
+     * @type {BABYLON.Camera}
+     * Camera qui visualise la projection
+     */
     camera2D;
+
+    /**
+     * @type {String}
+     * Axe que l'on applatit pour projeter la forme 3D en 2D
+     */
+    axe;
     
+
+
+
+
     /**
      * Constructeur de la forme
      * @param {String} nom
      * @param {Sommet[]} sommetsParameters 
-     * @param {Arete[]} aretesParameters 
+     * @param {Arete[]} aretesParameters
+     * @param {String} axe
      */
-    constructor(nom, sommets, aretes, camera2D) {
-    super(nom, sommets, aretes);
-    this.camera2D = camera2D;
-  }
+    constructor(nom, sommets, aretes, camera2D, axe) {
+        super(nom, sommets, aretes);
+        this.camera2D = camera2D;
+        this.axe = axe;
+    }
+
+
+
+
 
     /**
      * Met à jour la forme (points et arêtes) dans l'espace 3D
@@ -47,13 +68,20 @@ class Projection2D extends Forme {
             // Calcul de la position relative du sommet par rapport à la caméra
             let relativeX = sommet.vector.x - this.camera2D.position.x;
             let relativeY = sommet.vector.y - this.camera2D.position.y;
+            let relativeZ = sommet.vector.z - this.camera2D.position.z;
             
             // Application de la projection
             let x2D = (relativeX * scale);
             let y2D = (relativeY * scale);
+            let z2D = (relativeZ * scale);
 
             let s2D = getS(sommet.name);
-            s2D.vector.set(x2D, y2D, 0);
+
+            switch(this.axe) {
+                case 'x': s2D.vector.set(0, y2D, z2D); break;
+                case 'y': s2D.vector.set(x2D, 0, z2D); break;
+                case 'z': s2D.vector.set(x2D, y2D, 0); break;
+            }
 
             // Update des sommets
             s2D.update();

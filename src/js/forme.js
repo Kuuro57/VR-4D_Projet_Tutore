@@ -32,16 +32,20 @@ class Forme {
     faces = [];
 
     /**
-     * @type {Forme}
+     * @type {Forme[]}
      * Forme représentant la projection 2D de la forme
      */
-    projection2D;
+    projection2D = [];
 
     /**
-     * @type {Forme}
+     * @type {Forme[]}
      * Forme représentant la projection 3D de la forme (si en 4D)
      */
-    projection3D;
+    projection3D = [];
+
+
+
+
 
     /**
      * Constructeur de la forme
@@ -54,6 +58,9 @@ class Forme {
         this.sommets = sommetsParameters;
         this.aretes = aretesParameters;
     }
+
+
+
 
 
     //TODO soit retirer, soit completer avec les faces
@@ -75,6 +82,10 @@ class Forme {
 
         return forme;
     }
+
+
+
+
 
     /**
      * méthode statique qui permet de créer une forme de cube à partir du centre, de la taille et du nom
@@ -133,6 +144,10 @@ class Forme {
         return forme;
     }
 
+
+
+
+
     //TODO Ajouter des faces pour un hypercube
 
     /**
@@ -148,6 +163,10 @@ class Forme {
         });
         
     }
+
+
+
+
 
     /**
      * méthode qui permet d'afficher ou cacher les wireframes (sommets et arêtes) de la forme
@@ -171,6 +190,10 @@ class Forme {
 
     }
     
+
+
+
+
     /**
      * méthode pour créer un hypercube à partir d'un centre
      * @param {String} name nom de l'hypercube
@@ -233,6 +256,10 @@ class Forme {
         
     }
 
+
+
+
+
     /**
      * Méthode qui calcule et retourne le centre de la forme sous forme d'un vecteur
      * @returns Le vecteur représentant le centre de la forme
@@ -262,6 +289,10 @@ class Forme {
 
     }
 
+
+
+
+
     /**
      * Methode d'affichage de la forme dans la scène
      * @param {BABYLON.Scene} scene 
@@ -272,6 +303,10 @@ class Forme {
         this.faces.forEach(f => f.build(scene));
     }
 
+
+
+
+
     /**
      * Met à jour la forme (points et arêtes) dans l'espace 3D
      */
@@ -280,10 +315,13 @@ class Forme {
         this.aretes.forEach(a => a.update());
         this.faces.forEach(f => f.update());
 
-        //récursivité sur les projections
-        if (this.projection2D) this.projection2D.update();
-        if (this.projection3D) this.projection3D.update();
+        // Récursivité sur les projections
+        this.projection2D.forEach(element => { element.update(); });
+        this.projection3D.forEach(element => { element.update(); });
     }
+
+
+
 
 
     /**
@@ -318,6 +356,10 @@ class Forme {
 
     }
 
+
+
+
+
     /**
      * Méthode qui supprime la forme
      */
@@ -344,15 +386,16 @@ class Forme {
             });
         }
 
-        //suppression récursive des projections
-        if(this.projection2D)
-            this.projection2D.delete();
-
-        if(this.projection3D)
-            this.projection3D.delete();
+        // Suppression récursive des projections
+        this.projection2D.forEach(element => { element.delete(); });
+        this.projection3D.forEach(element => { element.delete(); });
     }
 
 }
+
+
+
+
 
 //Export
 export { 
