@@ -148,6 +148,7 @@ function createScene() {
 
     forme3D.projection2D.formeParente = forme3D;
     forme3D.projection2D.build(scene2D);
+    forme3D.projection2D.update();
 
     initControls({
       forme3D,
