@@ -16,7 +16,20 @@ function homothetie (forme, factor) {
 
     // Sommets : position + taille
     forme.sommets.forEach((sommet) => {
-        sommet.vector = center.add(sommet.vector.subtract(center).scale(factor));
+        const diff = sommet.vector.subtract(center);
+        
+        // forme 4D pas de scale de w
+        if (sommet.vector.w !== undefined) {
+            const scaledDiff = diff.scale(factor);
+            sommet.vector.x = center.x + scaledDiff.x;
+            sommet.vector.y = center.y + scaledDiff.y;
+            sommet.vector.z = center.z + scaledDiff.z;
+            // w reste inchangé : sommet.vector.w = sommet.vector.w
+        } else {
+            // Pour les formes 3D, homothétie normale
+            sommet.vector = center.add(diff.scale(factor));
+        }
+        
         sommet.scale *= factor;
     });
 
