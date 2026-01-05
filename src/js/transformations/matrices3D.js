@@ -1,5 +1,5 @@
 /**
- * Classe contenant des matrices de transformation
+ * Classe contenant des matrices de transformation pour la 3D
  */
 
 /**
