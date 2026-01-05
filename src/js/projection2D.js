@@ -48,49 +48,39 @@ class Projection2D extends Forme {
      * Met à jour la forme (points et arêtes) dans l'espace 3D
      */
     update() {
-        const baseScale = 1;
-        const depthScale = 0.2;
 
-        let getS = (name) => this.sommets.find(s => s.name === name);
+        const centre3D = this.formeParente.getVectorCenter();
         
-        // moyenne des Z pour stabiliser
-        let avgZ = 0;
-        this.formeParente.sommets.forEach(s => avgZ += s.vector.z);
-        avgZ /= this.formeParente.sommets.length;
-
-        let scale = baseScale - avgZ * depthScale;
-
-        // éviter les échelles négatives ou nulles
-        scale = Math.max(0.1, scale);
+        const getS = (name) => this.sommets.find(s => s.name === name);
 
         this.formeParente.sommets.forEach(sommet => {
 
-            // Calcul de la position relative du sommet par rapport à la caméra
-            let relativeX = sommet.vector.x - this.camera2D.position.x;
-            let relativeY = sommet.vector.y - this.camera2D.position.y;
-            let relativeZ = sommet.vector.z - this.camera2D.position.z;
-            
-            // Application de la projection
-            let x2D = (relativeX * scale);
-            let y2D = (relativeY * scale);
-            let z2D = (relativeZ * scale);
+            // Calcul des nouvelles coordonnées
+            let localX = sommet.vector.x - centre3D.x;
+            let localY = sommet.vector.y - centre3D.y;
+            let localZ = sommet.vector.z - centre3D.z;
 
-            let s2D = getS(sommet.name);
+            const s2D = getS(sommet.name);
 
             switch(this.axe) {
-                case 'x': s2D.vector.set(0, y2D, z2D); break;
-                case 'y': s2D.vector.set(x2D, 0, z2D); break;
-                case 'z': s2D.vector.set(x2D, y2D, 0); break;
+                case 'x': 
+                    s2D.vector.set(0, localY, localZ); 
+                    break;
+                case 'y': 
+                    s2D.vector.set(localX, 0, localZ); 
+                    break;
+                case 'z': 
+                    s2D.vector.set(localX, localY, 0); 
+                    break;
             }
 
-            // Update des sommets
+            // Mise à jour du sommet
             s2D.update();
         });
 
-        // Update des arêtes
-        this.aretes.forEach(a => a.update())
+        // Mise à jour des arêtes
+        this.aretes.forEach(a => a.update());
     }
-
 }
 
 

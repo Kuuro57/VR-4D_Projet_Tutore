@@ -2,189 +2,188 @@ import { rotation3D } from "./transformations/rotations.js";
 import { translation } from "./transformations/translations.js";
 import { homothetie } from "./transformations/homothetie.js";
 
-
-
-
-// --- CONFIGURATION & ETAT ---
-const CONFIG = {
-    STEP: 0.05,
-    INTERVAL: 16,
-    ROT_INTERVAL: 10,
-    SCALE_PLUS: 1.01,
-    SCALE_MINUS: 0.99
+const REGLAGES = {
+    vitesseDeplacement: 0.05,
+    vitesseRafraichissement: 16,
+    vitesseRotation: 10,
+    grossissement: 1.01,
+    retrait: 0.99
 };
 
-
-
-
-// On stocke l'état ici pour y accéder depuis les événements DOM
-const state = {
-    formeActive: null,
-    forme4D: null,
-    camera3D: null,
-    scene3D: null,
-    projections: [], 
-    facesVisible: false,
-    wireVisible: false
+const memoire = {
+    formePrincipale: null,
+    listeDesProjections2D: [],
+    facesVisibles: false,
+    filDeFerVisible: false
 };
 
-
-
-
-const timers = {
+// Stockage des chronomètres
+const chronos = {
     rotation: { x: null, y: null, z: null },
-    translation: {}, // ex: { "x+": id }
-    homothetie: { "+": null, "-": null }
+    translation: {}, 
+    homothetie: { plus: null, moins: null }
 };
+
 
 
 
 
 /**
- * Initialise les références et les événements (A APPELER UNE SEULE FOIS)
+ * Configure les formes de départ et active les boutons du HTML
  */
 export function initControls({ forme3D, forme4D, camera3D, scene3D }) {
-    state.formeActive = forme3D;
-    state.forme4D = forme4D;
-    state.camera3D = camera3D;
-    state.scene3D = scene3D;
-
-    setupEventListeners();
+    memoire.formePrincipale = forme3D;
+    activerBoutons();
 }
+
+/**
+ * Ajoute une vue 2D à la liste pour qu'elle puisse réagir aux rotations
+ */
+export function registerProjection(projection) {
+    memoire.listeDesProjections2D.push(projection);
+}
+
 
 
 
 
 /**
- * Enregistre une nouvelle projection 2D pour qu'elle soit mise à jour
+ * Applique une action (comme tourner) à tout le monde
  */
-export function registerProjection(projection) {
-    state.projections.push(projection);
+function rotationSelonAxe(axe) {
+    if (!memoire.formePrincipale) return;
+
+    // 1. On fait tourner la forme 3D
+    rotation3D(memoire.formePrincipale, axe);
+
+    // 2. On demande à chaque vue 2D de se mettre à jour
+    memoire.listeDesProjections2D.forEach(proj => proj.update());
 }
 
-
-
-
-// --- LOGIQUE DE TRANSFORMATION ---
-
-function applyToAll(transformFn) {
-    if (!state.formeActive) return;
+/**
+ * Applique une action (bouger ou zoomer) uniquement sur la forme principale
+ */
+function transformation(transformationFn) {
+    if (!memoire.formePrincipale) return;
     
-    // Appliquer à la forme principale
-    transformFn(state.formeActive);
+    transformationFn(memoire.formePrincipale);
 
-    // Mettre à jour toutes les projections 2D
-    state.projections.forEach(proj => {
-        proj.update(); 
-    });
+    // Rafraichissement des projections
+    memoire.listeDesProjections2D.forEach(proj => proj.update());
 }
 
 
 
-function toggleRotation(axis, btnId) {
-    const btn = document.getElementById(btnId);
 
-    if (timers.rotation[axis]) {
-        clearInterval(timers.rotation[axis]);
-        timers.rotation[axis] = null;
-        btn.textContent = `Rotation ${axis.toUpperCase()}`;
+
+function gererRotation(axe, idBouton) {
+    const bouton = document.getElementById(idBouton);
+
+    if (chronos.rotation[axe]) {
+        // Si ça tourne déjà, on arrête
+        clearInterval(chronos.rotation[axe]);
+        chronos.rotation[axe] = null;
+        bouton.textContent = `Rotation ${axe.toUpperCase()}`;
     } else {
-        timers.rotation[axis] = setInterval(() => {
-            applyToAll((f) => rotation3D(f, axis));
-        }, CONFIG.ROT_INTERVAL);
-        btn.textContent = `Stop ${axis.toUpperCase()}`;
+        // Sinon, on lance le mouvement répétitif
+        chronos.rotation[axe] = setInterval(() => {
+            rotationSelonAxe(axe);
+        }, REGLAGES.vitesseRotation);
+        bouton.textContent = `Stop ${axe.toUpperCase()}`;
     }
 }
 
 
 
-function handleTranslation(axis, direction, start = true) {
-    const key = axis + direction;
-    if (!start) {
-        clearInterval(timers.translation[key]);
-        timers.translation[key] = null;
+function gererDeplacement(axe, direction, demarrer) {
+    const clef = axe + direction;
+    
+    if (!demarrer) {
+        clearInterval(chronos.translation[clef]);
+        chronos.translation[clef] = null;
         return;
     }
 
-    if (timers.translation[key]) return;
+    if (chronos.translation[clef]) return;
 
-    timers.translation[key] = setInterval(() => {
-        applyToAll((f) => {
-            const target = f.formeParente ?? f;
-            const v0 = target.sommets?.[0]?.vector;
-            const v = (v0 instanceof BABYLON.Vector4)
+    chronos.translation[clef] = setInterval(() => {
+        transformation((f) => {
+            const cible = f.formeParente ?? f;
+            const v0 = cible.sommets?.[0]?.vector;
+            const vecteur = (v0 instanceof BABYLON.Vector4)
                 ? new BABYLON.Vector4(0, 0, 0, 0)
                 : new BABYLON.Vector3(0, 0, 0);
             
-            v[axis] = direction === "+" ? CONFIG.STEP : -CONFIG.STEP;
-            translation(target, v);
+            vecteur[axe] = (direction === "+") ? REGLAGES.vitesseDeplacement : -REGLAGES.vitesseDeplacement;
+            translation(cible, vecteur);
         });
-    }, CONFIG.INTERVAL);
+    }, REGLAGES.vitesseRafraichissement);
 }
 
 
 
-function handleScale(direction, start = true) {
-    if (!start) {
-        clearInterval(timers.homothetie[direction]);
-        timers.homothetie[direction] = null;
+function gererHomotethie(direction, demarrer) {
+    if (!demarrer) {
+        clearInterval(chronos.homothetie[direction]);
+        chronos.homothetie[direction] = null;
         return;
     }
 
-    if (timers.homothetie[direction]) return;
+    if (chronos.homothetie[direction]) return;
 
-    timers.homothetie[direction] = setInterval(() => {
-        const factor = direction === "+" ? CONFIG.SCALE_PLUS : CONFIG.SCALE_MINUS;
-        applyToAll((f) => homothetie(f.formeParente ?? f, factor));
-    }, CONFIG.INTERVAL);
+    chronos.homothetie[direction] = setInterval(() => {
+        const force = (direction === "+") ? REGLAGES.grossissement : REGLAGES.retrait;
+        // Ici aussi, on ne change que la 3D
+        transformation((f) => {
+            homothetie(f.formeParente ?? f, force);
+        });
+    }, REGLAGES.vitesseRafraichissement);
 }
 
 
 
 
-// --- EVENEMENTS ---
-
-function setupEventListeners() {
-    // Rotations
-    ["x", "y", "z"].forEach(axis => {
-        document.getElementById(`btn-rotation-${axis}`).onclick = () => toggleRotation(axis, `btn-rotation-${axis}`);
+function activerBoutons() {
+    // Boutons de rotation
+    ["x", "y", "z"].forEach(axe => {
+        const id = `btn-rotation-${axe}`;
+        document.getElementById(id).onclick = () => gererRotation(axe, id);
     });
 
-    // Translations
-    ["x", "y", "z"].forEach(axis => {
+    // Boutons de déplacement
+    ["x", "y", "z"].forEach(axe => {
         ["plus", "minus"].forEach(dir => {
-            const btn = document.getElementById(`t${axis}-${dir}`);
-            const symbol = dir === "plus" ? "+" : "-";
-            btn.onmousedown = () => handleTranslation(axis, symbol, true);
-            btn.onmouseup = btn.onmouseleave = () => handleTranslation(axis, symbol, false);
+            const btn = document.getElementById(`t${axe}-${dir}`);
+            const signe = (dir === "plus") ? "+" : "-";
+            btn.onmousedown = () => gererDeplacement(axe, signe, true);
+            btn.onmouseup = btn.onmouseleave = () => gererDeplacement(axe, signe, false);
         });
     });
 
-    // Homothétie
+    // Boutons de Zoom (homotéthie)
     ["plus", "minus"].forEach(dir => {
         const btn = document.getElementById(`homothetie-${dir}`);
-        const symbol = dir === "plus" ? "+" : "-";
-        btn.onmousedown = () => handleScale(symbol, true);
-        btn.onmouseup = btn.onmouseleave = () => handleScale(symbol, false);
+        const signe = (dir === "plus") ? "+" : "-";
+        btn.onmousedown = () => gererHomotethie(signe, true);
+        btn.onmouseup = btn.onmouseleave = () => gererHomotethie(signe, false);
     });
 
-    // Toggles Visuels
+    // Boutons d'affichage (Faces et Fil de fer)
     document.getElementById("btn-faces-toggle").onclick = (e) => {
-        state.facesVisible = !state.facesVisible;
-        state.formeActive.toggleFaces?.(state.facesVisible);
-        e.target.textContent = state.facesVisible ? "Cacher les faces" : "Afficher les faces";
+        memoire.facesVisibles = !memoire.facesVisibles;
+        memoire.formePrincipale.toggleFaces?.(memoire.facesVisibles);
+        e.target.textContent = memoire.facesVisibles ? "Cacher les faces" : "Afficher les faces";
     };
 
     document.getElementById("btn-wire-toggle").onclick = (e) => {
-        state.wireVisible = !state.wireVisible;
-        state.formeActive.toggleWireframe?.(state.wireVisible);
-        e.target.textContent = state.wireVisible ? "Cacher fil de fer" : "Afficher fil de fer";
+        memoire.filDeFerVisible = !memoire.filDeFerVisible;
+        memoire.formePrincipale.toggleWireframe?.(memoire.filDeFerVisible);
+        e.target.textContent = memoire.filDeFerVisible ? "Cacher fil de fer" : "Afficher fil de fer";
     };
 
-    // Global stop
     window.onmouseup = () => {
-        Object.keys(timers.translation).forEach(k => handleTranslation(k[0], k[1], false));
-        handleScale("+", false);
-        handleScale("-", false);
+        Object.keys(chronos.translation).forEach(k => gererDeplacement(k[0], k[1], false));
+        gererHomotethie("+", false);
+        gererHomotethie("-", false);
     };
 }

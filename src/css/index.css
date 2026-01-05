@@ -1,101 +1,70 @@
-:root {
-  --bg-panel: rgba(20, 20, 24, 0.85);
-  --border-ui: 1px solid rgba(255, 255, 255, 0.2);
-  --font-main: system-ui, -apple-system, sans-serif;
-}
-
+/* --- RESET & BASE --- */
 html, body { 
-  width: 100%; height: 100%; margin: 0; overflow: hidden; 
-  background: #000; font-family: var(--font-main);
+  margin: 0; 
+  height: 100%; 
+  background: #000; 
+  color: #fff;
+  font-family: sans-serif;
+  overflow: hidden; 
 }
 
-/* --- STRUCTURE DES CANVAS --- */
-#container {
-  position: relative;
-  width: 100%;
-  height: 100%;
+/* --- CANVAS --- */
+#renderCanvas3D { 
+  position: absolute; 
+  width: 100%; height: 100%; 
+  z-index: 1; 
 }
 
-#renderCanvas3D {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-}
-
-/* Conteneur vertical pour les canvas 2D */
 #sidebar-2d {
   position: absolute;
-  right: 20px;
-  top: 20px;
-  z-index: 5;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  width: 250px;
+  right: 10px; top: 10px; z-index: 5;
+  display: flex; flex-direction: column; gap: 10px;
 }
 
 .canvas2D {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  border: 2px solid white;
-  background: rgba(0,0,0,0.5);
+  width: 200px; height: 200px;
+  border: 1px solid #fff;
+  background: #111;
 }
 
-/* --- INTERFACE UTILISATEUR --- */
+/* --- INTERFACE (UI) --- */
 #ui-controls {
   position: absolute;
-  left: 12px;
-  top: 12px;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  left: 10px; top: 10px; z-index: 10;
+  display: flex; flex-direction: column; gap: 5px;
+  width: 180px;
 }
 
-/* Style commun Boutons et Panels */
+/* Style unique pour tous les blocs (Boutons, Panneaux, Aide) */
 #ui-controls button, 
-.panel, 
-#kbd-hint {
-  background: var(--bg-panel);
-  border: var(--border-ui);
+.panel {
+  background: rgba(40, 40, 40, 0.9);
+  border: 1px solid #666;
   color: #fff;
-  border-radius: 8px;
-  padding: 10px;
-  backdrop-filter: blur(8px);
+  padding: 8px;
+  font-size: 13px;
 }
 
-#ui-controls button {
+/* Boutons : reset du style par défaut */
+button {
   cursor: pointer;
-  font-weight: 600;
   text-align: left;
+  width: 100%;
 }
 
-#ui-controls button:hover {
-  background: rgba(50, 50, 60, 0.9);
+button:hover {
+  background: #555;
 }
 
 /* Panneaux de réglages */
-.panel {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  cursor: default;
-}
+.panel { display: flex; flex-direction: column; gap: 5px; }
+.label { font-size: 11px; opacity: 0.6; }
+.axis { display: flex; align-items: center; gap: 5px; }
+.axis span { width: 10px; }
 
-.label { font-size: 12px; text-transform: uppercase; opacity: 0.8; margin-bottom: 4px; }
-
-.axis { display: flex; align-items: center; gap: 8px; }
-.axis span { width: 12px; font-weight: bold; }
-.axis button { padding: 4px 10px !important; text-align: center !important; }
-
-/* Hint Clavier */
-#kbd-hint h3 { margin: 0 0 8px 0; font-size: 14px; }
-.kbd-inside { margin-bottom: 6px; font-size: 13px; }
-.kbd {
-  background: #444;
-  padding: 2px 6px;
-  border-radius: 4px;
-  border: 1px solid #666;
-  font-weight: bold;
+/* Ajustement spécifique pour les petits boutons + / - */
+.axis button {
+  width: 30px;
+  text-align: center;
+  padding: 2px;
 }

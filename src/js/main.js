@@ -25,7 +25,7 @@ let forme4D;
 let nbProjections = 0;
 let canvasCamera = new Map();
 
-let projections = []; // Remplacer forme3D.projection2D par un tableau
+let projections = [];
 
 
 
@@ -161,7 +161,7 @@ function addProjection2D(forme3D, axe) {
 
     let localCamera2D = initCamera2D(scene2D, axe);
     
-    // On met à jour spécifiquement CETTE caméra pour ce canvas
+    // Mise à jour de la caméra visualisant la projection
     const ratio = newCanvas.clientWidth / newCanvas.clientHeight;
     localCamera2D.orthoLeft = -ratio;
     localCamera2D.orthoRight = ratio;
