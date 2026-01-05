@@ -23,6 +23,11 @@ class Projection2D extends Forme {
      */
     axe;
     
+    /**
+     * @type {Number}
+     * Taille de référence pour normaliser la projection (pour ne pas être affecté par l'homothétie)
+     */
+    tailleReference;
 
 
 
@@ -38,6 +43,7 @@ class Projection2D extends Forme {
         super(nom, sommets, aretes);
         this.camera2D = camera2D;
         this.axe = axe;
+        this.tailleReference = null;
     }
 
 
@@ -53,12 +59,36 @@ class Projection2D extends Forme {
         
         const getS = (name) => this.sommets.find(s => s.name === name);
 
+        // Calcule la taille actuelle de la forme parente
+        let tailleActuelle = 0;
+        this.formeParente.sommets.forEach(sommet => {
+            const dist = Math.sqrt(
+                Math.pow(sommet.vector.x - centre3D.x, 2) +
+                Math.pow(sommet.vector.y - centre3D.y, 2) +
+                Math.pow(sommet.vector.z - centre3D.z, 2)
+            );
+            tailleActuelle = Math.max(tailleActuelle, dist);
+        });
+
+        // Initialise la taille de référence au premier update
+        if (this.tailleReference === null) {
+            this.tailleReference = tailleActuelle;
+        }
+
+        // Calcule le facteur de normalisation pour annuler l'homothétie (protection contre division par 0)
+        const facteurNormalisation = (tailleActuelle > 0.0001) ? (this.tailleReference / tailleActuelle) : 1.0;
+
         this.formeParente.sommets.forEach(sommet => {
 
             // Calcul des nouvelles coordonnées
             let localX = sommet.vector.x - centre3D.x;
             let localY = sommet.vector.y - centre3D.y;
             let localZ = sommet.vector.z - centre3D.z;
+
+            // Normalise pour garder la même taille visuelle
+            localX *= facteurNormalisation;
+            localY *= facteurNormalisation;
+            localZ *= facteurNormalisation;
 
             const s2D = getS(sommet.name);
 
@@ -73,6 +103,9 @@ class Projection2D extends Forme {
                     s2D.vector.set(localX, localY, 0); 
                     break;
             }
+
+            // ignore l'homothétie
+            s2D.scale = 1.0;
 
             // Mise à jour du sommet
             s2D.update();
