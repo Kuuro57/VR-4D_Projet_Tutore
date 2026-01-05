@@ -1,296 +1,189 @@
-import {forme3D, forme4D} from "./main.js";
 import { rotation3D } from "./transformations/rotations.js";
 import { translation } from "./transformations/translations.js";
 import { homothetie } from "./transformations/homothetie.js";
-import { Projection2D } from "./projection2D.js";
-import { projection2D, projection3D } from "./projection/projections.js";
 
+const REGLAGES = {
+    vitesseDeplacement: 0.05,
+    vitesseRafraichissement: 16,
+    vitesseRotation: 10,
+    grossissement: 1.01,
+    retrait: 0.99
+};
 
+const memoire = {
+    formePrincipale: null,
+    listeDesProjections2D: [],
+    facesVisibles: false,
+    filDeFerVisible: false
+};
 
-/**
- * Variables pour l'affichage de la forme
- */
-var facesVisible = false;
-var wireVisible = false;
-
-
-/**
- * 
- * @param {*} forme 
- */
-function initControls({ forme3D, forme4D, camera3D, camera2D, scene3D, scene2D }) {
-
-    let forme = forme3D;
-
-    document.getElementById("btn-rotation-x").addEventListener("click", () => toggleRotation(forme, "x", "btn-rotation-x"));
-    document.getElementById("btn-rotation-y").addEventListener("click", () => toggleRotation(forme, "y", "btn-rotation-y"));
-    document.getElementById("btn-rotation-z").addEventListener("click", () => toggleRotation(forme, "z", "btn-rotation-z"));
-
-    document.getElementById("tx-plus").addEventListener("mousedown", () => toggleTranslation(forme, "x", "+"));
-    document.getElementById("tx-plus").addEventListener("mouseup", () => toggleTranslation(forme, "x", "+"));
-    document.getElementById("tx-plus").addEventListener("mouseleave", () => stopTranslation("x", "+"));
-
-    document.getElementById("tx-minus").addEventListener("mousedown", () => toggleTranslation(forme, "x", "-"));
-    document.getElementById("tx-minus").addEventListener("mouseup", () => toggleTranslation(forme, "x", "-"));
-    document.getElementById("tx-minus").addEventListener("mouseleave", () => stopTranslation("x", "-"));
-
-    document.getElementById("ty-plus").addEventListener("mousedown", () => toggleTranslation(forme, "y", "+"));
-    document.getElementById("ty-plus").addEventListener("mouseup", () => toggleTranslation(forme, "y", "+"));
-    document.getElementById("ty-plus").addEventListener("mouseleave", () => stopTranslation("y", "+"));
-
-    document.getElementById("ty-minus").addEventListener("mousedown", () => toggleTranslation(forme, "y", "-"));
-    document.getElementById("ty-minus").addEventListener("mouseup", () => toggleTranslation(forme, "y", "-"));
-    document.getElementById("ty-minus").addEventListener("mouseleave", () => stopTranslation("y", "-"));
-
-    document.getElementById("tz-plus").addEventListener("mousedown", () => toggleTranslation(forme, "z", "+"));
-    document.getElementById("tz-plus").addEventListener("mouseup", () => toggleTranslation(forme, "z", "+"));
-    document.getElementById("tz-plus").addEventListener("mouseleave", () => stopTranslation("z", "+"));
-
-    document.getElementById("tz-minus").addEventListener("mousedown", () => toggleTranslation(forme, "z", "-"));
-    document.getElementById("tz-minus").addEventListener("mouseup", () => toggleTranslation(forme, "z", "-"));
-    document.getElementById("tz-minus").addEventListener("mouseleave", () => stopTranslation("z", "-"));
-
-    document.getElementById("homothetie-plus").addEventListener("mousedown", () => { startHomothetie(forme, "+");});
-    document.getElementById("homothetie-plus").addEventListener("mouseup", () => { stopHomothetie("+");});
-    document.getElementById("homothetie-plus").addEventListener("mouseleave", () => { stopHomothetie("+");});
-
-    document.getElementById("homothetie-minus").addEventListener("mousedown", () => { startHomothetie(forme, "-");});
-    document.getElementById("homothetie-minus").addEventListener("mouseup", () => { stopHomothetie("-");});
-    document.getElementById("homothetie-minus").addEventListener("mouseleave", () => { stopHomothetie("-");});
-
-
-    // arrêt de toutes les translations/homothéties si mouseup en dehors
-    window.addEventListener("mouseup", () => {
-      stopTranslation("x", "+");
-      stopTranslation("x", "-");
-      stopTranslation("y", "+");
-      stopTranslation("y", "-");
-      stopTranslation("z", "+");
-      stopTranslation("z", "-");
-      stopHomothetie("+");
-      stopHomothetie("-");
-    });
-
-    document.getElementById("btn-faces-toggle").addEventListener("click", (event) => {
-      
-      forme.toggleFaces(facesVisible);
-
-      if (facesVisible) event.target.textContent = "Cacher les faces";
-      else event.target.textContent = "Afficher les faces";
-      facesVisible = !facesVisible;
-      
-    });
-
-    document.getElementById("btn-wire-toggle").addEventListener("click", (event) => {
-      
-      forme.toggleWireframe(wireVisible);
-
-      if (wireVisible) event.target.textContent = "Cacher la vue fil de fer";
-      else event.target.textContent = "Afficher la vue fil de fer";
-      wireVisible = !wireVisible;
-
-    });
-
-    addEventListener("keypress", (event) => {
-      if (event.key === "p") {
-        forme.delete?.();
-
-        // projection3D au centre
-        const proj3D = projection3D(forme4D, camera3D, scene3D);
-
-        // projection2D dans le coin
-        projection2D(proj3D, camera2D, scene2D);
-
-        forme = proj3D;
-      }
-
-      else if (event.key === "o") {
-        forme.delete?.();
-
-        // forme3D au centre
-        forme = forme3D;
-        forme.build(scene3D);
-
-        // projection2D dans le coin
-        projection2D(forme3D, camera2D, scene2D);
-      }
-    });
-
+// Stockage des chronomètres
+const chronos = {
+    rotation: { x: null, y: null, z: null },
+    translation: {}, 
+    homothetie: { plus: null, moins: null }
 };
 
 
 
 
 
-// CONSTANTES
-const timersRotation = {
-  x: null,
-  y: null,
-  z: null,
-};
+/**
+ * Configure les formes de départ et active les boutons du HTML
+ */
+export function initControls({ forme3D, forme4D, camera3D, scene3D }) {
+    memoire.formePrincipale = forme3D;
+    activerBoutons();
+}
 
-function startHomothetie(forme, direction) {
-  if (!forme) return;
-  if (timersHomothetie[direction]) return;
-
-  const target = getTransformTarget(forme);
-
-  timersHomothetie[direction] = setInterval(() => {
-    const factor = direction === "+" ? 1.01 : 0.99;
-    homothetie(target, factor);
-  }, INTERVAL);
+/**
+ * Ajoute une vue 2D à la liste pour qu'elle puisse réagir aux rotations
+ */
+export function registerProjection(projection) {
+    memoire.listeDesProjections2D.push(projection);
 }
 
 
+
+
+
 /**
- * Méthode qui active ou désactive la rotation de la forme
- * @param {Forme} forme Forme que l'on veut tourner 
- * @param {*} axis Axe selon lequel on veut activer ou désactier la rotation de la forme
- * @param {*} btnId Id du bouton sur lequel on vient d'appuier
- * @returns 
+ * Applique une action (comme tourner) à tout le monde
  */
-function toggleRotation(forme, axis, btnId) {
-    if (!forme) return;
+function rotationSelonAxe(axe) {
+    if (!memoire.formePrincipale) return;
 
-    const btn = document.getElementById(btnId);
+    // 1. On fait tourner la forme 3D
+    rotation3D(memoire.formePrincipale, axe);
 
-    // Si déjà en rotation => stop
-    if (timersRotation[axis] !== null) {
-      
-        clearInterval(timersRotation[axis]);
-        timersRotation[axis] = null;
-        btn.textContent = `Rotation ${axis.toUpperCase()}`;
+    // 2. On demande à chaque vue 2D de se mettre à jour
+    memoire.listeDesProjections2D.forEach(proj => proj.update());
+}
 
+/**
+ * Applique une action (bouger ou zoomer) uniquement sur la forme principale
+ */
+function transformation(transformationFn) {
+    if (!memoire.formePrincipale) return;
+    
+    transformationFn(memoire.formePrincipale);
+
+    // Rafraichissement des projections
+    memoire.listeDesProjections2D.forEach(proj => proj.update());
+}
+
+
+
+
+
+function gererRotation(axe, idBouton) {
+    const bouton = document.getElementById(idBouton);
+
+    if (chronos.rotation[axe]) {
+        // Si ça tourne déjà, on arrête
+        clearInterval(chronos.rotation[axe]);
+        chronos.rotation[axe] = null;
+        bouton.textContent = `Rotation ${axe.toUpperCase()}`;
+    } else {
+        // Sinon, on lance le mouvement répétitif
+        chronos.rotation[axe] = setInterval(() => {
+            rotationSelonAxe(axe);
+        }, REGLAGES.vitesseRotation);
+        bouton.textContent = `Stop ${axe.toUpperCase()}`;
     }
-    // Sinon => start
-    else {
+}
 
-        timersRotation[axis] = setInterval(() => {
-          rotation3D(forme, axis);
-        }, 10);
-        btn.textContent = `Stop ${axis.toUpperCase()}`;
-      
+
+
+function gererDeplacement(axe, direction, demarrer) {
+    const clef = axe + direction;
+    
+    if (!demarrer) {
+        clearInterval(chronos.translation[clef]);
+        chronos.translation[clef] = null;
+        return;
     }
 
-  
+    if (chronos.translation[clef]) return;
+
+    chronos.translation[clef] = setInterval(() => {
+        transformation((f) => {
+            const cible = f.formeParente ?? f;
+            const v0 = cible.sommets?.[0]?.vector;
+            const vecteur = (v0 instanceof BABYLON.Vector4)
+                ? new BABYLON.Vector4(0, 0, 0, 0)
+                : new BABYLON.Vector3(0, 0, 0);
+            
+            vecteur[axe] = (direction === "+") ? REGLAGES.vitesseDeplacement : -REGLAGES.vitesseDeplacement;
+            translation(cible, vecteur);
+        });
+    }, REGLAGES.vitesseRafraichissement);
+}
+
+
+
+function gererHomotethie(direction, demarrer) {
+    if (!demarrer) {
+        clearInterval(chronos.homothetie[direction]);
+        chronos.homothetie[direction] = null;
+        return;
+    }
+
+    if (chronos.homothetie[direction]) return;
+
+    chronos.homothetie[direction] = setInterval(() => {
+        const force = (direction === "+") ? REGLAGES.grossissement : REGLAGES.retrait;
+        // Ici aussi, on ne change que la 3D
+        transformation((f) => {
+            homothetie(f.formeParente ?? f, force);
+        });
+    }, REGLAGES.vitesseRafraichissement);
 }
 
 
 
 
+function activerBoutons() {
+    // Boutons de rotation
+    ["x", "y", "z"].forEach(axe => {
+        const id = `btn-rotation-${axe}`;
+        document.getElementById(id).onclick = () => gererRotation(axe, id);
+    });
 
-// CONSTANTES
-const timersTranslation = {
-  "x+": null,
-  "x-": null,
-  "y+": null,
-  "y-": null,
-  "z+": null,
-  "z-": null
-};
-const STEP = 0.05;
-const INTERVAL = 16;
+    // Boutons de déplacement
+    ["x", "y", "z"].forEach(axe => {
+        ["plus", "minus"].forEach(dir => {
+            const btn = document.getElementById(`t${axe}-${dir}`);
+            const signe = (dir === "plus") ? "+" : "-";
+            btn.onmousedown = () => gererDeplacement(axe, signe, true);
+            btn.onmouseup = btn.onmouseleave = () => gererDeplacement(axe, signe, false);
+        });
+    });
 
-/**
- * Méthode qui lance ou arrête la translation de la forme
- * @param {*} axis Axe selon la forme se déplace
- * @param {*} direction Direction (droite ou gauche = "+" ou "-")
- * @returns 
- */
-function toggleTranslation(forme, axis, direction) {
-  if (!forme) return;
+    // Boutons de Zoom (homotéthie)
+    ["plus", "minus"].forEach(dir => {
+        const btn = document.getElementById(`homothetie-${dir}`);
+        const signe = (dir === "plus") ? "+" : "-";
+        btn.onmousedown = () => gererHomotethie(signe, true);
+        btn.onmouseup = btn.onmouseleave = () => gererHomotethie(signe, false);
+    });
 
-  const target = getTransformTarget(forme);
+    // Boutons d'affichage (Faces et Fil de fer)
+    document.getElementById("btn-faces-toggle").onclick = (e) => {
+        memoire.facesVisibles = !memoire.facesVisibles;
+        memoire.formePrincipale.toggleFaces?.(memoire.facesVisibles);
+        e.target.textContent = memoire.facesVisibles ? "Cacher les faces" : "Afficher les faces";
+    };
 
-  let key = axis + direction;
-  if (timersTranslation[key]) {
-    clearInterval(timersTranslation[key]);
-    timersTranslation[key] = null;
-  } else {
-    timersTranslation[key] = setInterval(() => {
+    document.getElementById("btn-wire-toggle").onclick = (e) => {
+        memoire.filDeFerVisible = !memoire.filDeFerVisible;
+        memoire.formePrincipale.toggleWireframe?.(memoire.filDeFerVisible);
+        e.target.textContent = memoire.filDeFerVisible ? "Cacher fil de fer" : "Afficher fil de fer";
+    };
 
-      // vecteur de translation compatible Vector3 / Vector4
-      const v0 = target.sommets?.[0]?.vector;
-      const v = (v0 instanceof BABYLON.Vector4)
-        ? new BABYLON.Vector4(0, 0, 0, 0)
-        : new BABYLON.Vector3(0, 0, 0);
-
-      v[axis] = direction === "+" ? STEP : -STEP;
-
-      translation(target, v);
-
-    }, INTERVAL);
-  }
-}
-
-/**
- * Fonction helper pour arrêter une translation sans la toggler
- * @param {*} axis 
- * @param {*} direction 
- */
-function stopTranslation(axis, direction) {
-  let key = axis + direction;
-  if (timersTranslation[key]) {
-    clearInterval(timersTranslation[key]);
-    timersTranslation[key] = null;
-  }
-}
-
-
-
-
-// CONSTANTES
-const timersHomothetie = {
-  "+": null,
-  "-": null
-};
-
-/**
- * Méthode qui lance ou arrête l'opération d'homotéthie
- * @param {*} forme Forme sur laquelle on veut appliquer l'homothétie
- * @param {*} direction "+" => aggrandir, "-" => rapetissir
- * @returns 
- */
-function toggleHomotethie(forme, direction) {
-  if (!forme) return;
-
-  const target = getTransformTarget(forme);
-
-  if (timersHomotethie[direction]) {
-    clearInterval(timersHomotethie[direction]);
-    timersHomotethie[direction] = null;
-  } else {
-    timersHomotethie[direction] = setInterval(() => {
-      const factor = direction === "+" ? 1.01 : 0.99;
-      homothetie(target, factor);
-    }, INTERVAL);
-  }
-}
-
-/**
- * Fonction helper pour arrêter une homothétie sans la toggler
- * @param {*} direction 
- */
-function stopHomothetie(direction) {
-  if (timersHomothetie[direction]) {
-    clearInterval(timersHomothetie[direction]);
-    timersHomothetie[direction] = null;
-  }
-}
-
-/**
- * Helper pour récupérer la bonne forme à transformer
- * (forme4D si on essaie de tourner sa projection3D)
- * @param {*} forme 
- * @returns 
- */
-function getTransformTarget(forme) {
-  return forme?.formeParente ?? forme;
-}
-
-
-
-
-export {
-  initControls
+    window.onmouseup = () => {
+        Object.keys(chronos.translation).forEach(k => gererDeplacement(k[0], k[1], false));
+        gererHomotethie("+", false);
+        gererHomotethie("-", false);
+    };
 }

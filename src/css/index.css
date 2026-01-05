@@ -1,171 +1,70 @@
+/* --- RESET & BASE --- */
 html, body { 
-  width: 100%; 
-  height: 100%; 
   margin: 0; 
+  height: 100%; 
+  background: #000; 
+  color: #fff;
+  font-family: sans-serif;
   overflow: hidden; 
 }
 
-#renderCanvas { 
-  width: 100%; 
-  height: 100%; 
-  touch-action: none; 
-  display: block; 
+/* --- CANVAS --- */
+#renderCanvas3D { 
+  position: absolute; 
+  width: 100%; height: 100%; 
+  z-index: 1; 
 }
 
-/* Base pour tous les boutons */
-#btn-rotation-x,
-#btn-rotation-y,
-#btn-rotation-z,
-#translation-panel,
-#homothetie-panel,
-#btn-faces-toggle,
-#btn-wire-toggle
-{
+#sidebar-2d {
   position: absolute;
-  left: 12px;
-  z-index: 10;
-
-  appearance: none;
-  border: 1px solid rgba(255,255,255,0.18);
-  background: rgba(20, 20, 24, 0.75);
-  color: #fff;
-  font: 600 14px/1.1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-
-  padding: 10px 14px;
-  border-radius: 10px;
-  cursor: pointer;
-  user-select: none;
-
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-
-  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+  right: 10px; top: 10px; z-index: 5;
+  display: flex; flex-direction: column; gap: 10px;
 }
 
-#btn-rotation-x:hover,
-#btn-rotation-y:hover,
-#btn-rotation-z:hover,
-.axis button:hover
-{
-  background: rgba(40, 40, 48, 0.85);
-  border-color: rgba(255,255,255,0.28);
-  transform: translateY(-1px);
+.canvas2D {
+  width: 200px; height: 200px;
+  border: 1px solid #fff;
+  background: #111;
 }
 
-#btn-rotation-x:active,
-#btn-rotation-y:active,
-#btn-rotation-z:active
-{
-  transform: translateY(0);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.22);
-}
-
-#btn-rotation-x:focus-visible,
-#btn-rotation-y:focus-visible,
-#btn-rotation-z:focus-visible
-{
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(100, 150, 255, 0.5), 0 10px 25px rgba(0,0,0,0.25);
-}
-
-/* Placement vertical en pile */
-#btn-rotation-x { top: 12px; }
-#btn-rotation-y { top: 56px; }
-#btn-rotation-z { top: 100px; }
-#translation-panel { top: 144px; }
-#homothetie-panel { top: 294px; }
-#btn-faces-toggle { top: 373px; }
-#btn-wire-toggle { top: 417px; }
-
-#translation-panel,
-#homothetie-panel
-{
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.axis
-{
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.axis span
-{
-  width: 16px;
-  color: #fff;
-  font-weight: bold;
-}
-
-.axis button
-{
-  appearance: none;
-  border: 1px solid rgba(255,255,255,0.18);
-  background: rgba(40, 40, 48, 0.85);
-  color: white;
-  font-size: 14px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-/* Visualisation 3D et 2D */
-
-#renderCanvas3D {
+/* --- INTERFACE (UI) --- */
+#ui-controls {
   position: absolute;
-  left: 0;
-  top: 0;
+  left: 10px; top: 10px; z-index: 10;
+  display: flex; flex-direction: column; gap: 5px;
+  width: 180px;
+}
+
+/* Style unique pour tous les blocs (Boutons, Panneaux, Aide) */
+#ui-controls button, 
+.panel {
+  background: rgba(40, 40, 40, 0.9);
+  border: 1px solid #666;
+  color: #fff;
+  padding: 8px;
+  font-size: 13px;
+}
+
+/* Boutons : reset du style par défaut */
+button {
+  cursor: pointer;
+  text-align: left;
   width: 100%;
-  height: 100%;
 }
 
-#renderCanvas2D {
-  position: absolute/*cinema*/;
-  right: 20px;
-  top: 20px;
-  width: 30%;
-  height: 30%;
-  border: 2px solid white;
+button:hover {
+  background: #555;
 }
 
-#kbd-hint{
-  position: absolute;
-  left: 12px;
-  top: 461px; /* juste sous btn-wire-toggle (417px) */
-  z-index: 10;
+/* Panneaux de réglages */
+.panel { display: flex; flex-direction: column; gap: 5px; }
+.label { font-size: 11px; opacity: 0.6; }
+.axis { display: flex; align-items: center; gap: 5px; }
+.axis span { width: 10px; }
 
-  border: 1px solid rgba(255,255,255,0.18);
-  background: rgba(20, 20, 24, 0.65);
-  color: rgba(255,255,255,0.9);
-  font: 500 13px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-
-  padding: 8px 12px;
-  border-radius: 10px;
-
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.18);
-}
-
-#kbd-hint .kbd{
-  display: inline-block;
-  min-width: 18px;
+/* Ajustement spécifique pour les petits boutons + / - */
+.axis button {
+  width: 30px;
   text-align: center;
-
-  padding: 2px 7px;
-  margin: 0 2px;
-
-  border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.22);
-  background: rgba(40, 40, 48, 0.85);
-  color: #fff;
-  font-weight: 700;
-}
-
-.kbd-inside{
-  display: block;
-  margin-bottom: 4px;
+  padding: 2px;
 }

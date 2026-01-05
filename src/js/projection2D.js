@@ -10,65 +10,77 @@ class Projection2D extends Forme {
      * Forme qui correspond à la forme 3D dont on a fait la projection en 2D
      */
     formeParente;
+
+    /**
+     * @type {BABYLON.Camera}
+     * Camera qui visualise la projection
+     */
     camera2D;
+
+    /**
+     * @type {String}
+     * Axe que l'on applatit pour projeter la forme 3D en 2D
+     */
+    axe;
     
+
+
+
+
     /**
      * Constructeur de la forme
      * @param {String} nom
      * @param {Sommet[]} sommetsParameters 
-     * @param {Arete[]} aretesParameters 
+     * @param {Arete[]} aretesParameters
+     * @param {String} axe
      */
-    constructor(nom, sommets, aretes, camera2D) {
-    super(nom, sommets, aretes);
-    this.camera2D = camera2D;
-  }
+    constructor(nom, sommets, aretes, camera2D, axe) {
+        super(nom, sommets, aretes);
+        this.camera2D = camera2D;
+        this.axe = axe;
+    }
+
+
+
+
 
     /**
      * Met à jour la forme (points et arêtes) dans l'espace 3D
      */
     update() {
-        const baseScale = 1;
 
-        let center = this.formeParente.getVectorCenter();
-        let getS = (name) => this.sommets.find(s => s.name === name);
+        const centre3D = this.formeParente.getVectorCenter();
         
-        // calcul du rayon max (taille actuelle de la forme)
-        let maxRadius = 0;
-        this.formeParente.sommets.forEach(s => {
-            const dx = s.vector.x - center.x;
-            const dy = s.vector.y - center.y;
-            const dz = s.vector.z - center.z;
-            const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            maxRadius = Math.max(maxRadius, dist);
-        });
+        const getS = (name) => this.sommets.find(s => s.name === name);
 
+        this.formeParente.sommets.forEach(sommet => {
 
-        // éviter les échelles négatives ou nulles
-        if (maxRadius === 0) maxRadius = 1;
+            // Calcul des nouvelles coordonnées
+            let localX = sommet.vector.x - centre3D.x;
+            let localY = sommet.vector.y - centre3D.y;
+            let localZ = sommet.vector.z - centre3D.z;
 
-        // projection normalisée
-       this.formeParente.sommets.forEach(sommet3D => {
+            const s2D = getS(sommet.name);
 
-            // Calcul de la position relative du sommet par rapport à la caméra
-            let localX = (sommet3D.vector.x - center.x) / maxRadius;
-            let localY = (sommet3D.vector.y - center.y) / maxRadius;
-            
-            // Application de la projection
-            const s2D = getS(sommet3D.name);
-            s2D.vector.set(
-                localX * baseScale,
-                localY * baseScale,
-                0
-            );
+            switch(this.axe) {
+                case 'x': 
+                    s2D.vector.set(0, localY, localZ); 
+                    break;
+                case 'y': 
+                    s2D.vector.set(localX, 0, localZ); 
+                    break;
+                case 'z': 
+                    s2D.vector.set(localX, localY, 0); 
+                    break;
+            }
 
-            // Update des sommets
+            // Mise à jour du sommet
             s2D.update();
         });
 
-        // Update des arêtes
-        this.aretes.forEach(a => a.update())
+        // Mise à jour des arêtes
+        this.aretes.forEach(a => a.update());
     }
-
 }
 
 

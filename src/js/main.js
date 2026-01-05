@@ -1,21 +1,18 @@
 import { Forme } from "./forme.js";
 import { Projection2D } from "./projection2D.js";
-import { projection2D, projection3D } from "./projection/projections.js";
-import { initControls } from "./controls.js";
+import { initControls, registerProjection } from "./controls.js";
 
 
 // Récupération des canvas
 const canvas3D = document.getElementById("renderCanvas3D");
-const canvas2D = document.getElementById("renderCanvas2D");
+const containerCanvas = document.getElementById("container");
 
 // Création des moteurs Babylon
 const engine3D = new BABYLON.Engine(canvas3D, true);
-const engine2D = new BABYLON.Engine(canvas2D, true);
 
 // Variable globale pour la forme 3D et la camera
 // Scene
 let scene;
-let scene2D;
 
 // Cameras
 let camera3D;
@@ -25,44 +22,15 @@ let camera2D;
 let forme3D;
 let forme4D;
 
+let nbProjections = 0;
+let canvasCamera = new Map();
 
-/**
- * Fonction qui initialise une caméra mobile et la lumière dans l'espace Babylon
- * @param {BABYLON.Scene} scene Scène sur laquelle on veut initialiser la caméra
- */
-function initCamera(scene) {
-    
-    // --- CAMERA & LUMIÈRE ---
-    camera = new BABYLON.ArcRotateCamera(
-        "Camera",
-        -Math.PI / 2,
-        Math.PI / 2,
-        8,
-        new BABYLON.Vector3(1.5, 0.5, 0.5), // vise entre les 2 cubes
-        scene
-    );
-    camera.attachControl(canvas, true);
-
-    new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0), scene);
-}
+let projections = [];
 
 
 
-/**
- * Fonction qui initialise une caméra fixe et la lumière dans l'espace Babylon
- * @param {BABYLON.Scene} scene Scène sur laquelle on veut initialiser la caméra
- */
-function initCameraFixed(scene) {
-  
-  camera = new BABYLON.FreeCamera(
-    "FixedCamera",
-    new BABYLON.Vector3(-3, 2, -5),
-    scene
-  );
-  camera.setTarget(new BABYLON.Vector3(0, 0, 0));
 
-  new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0), scene);
-}
+
 
 /**
  * Méthode qui initialise la caméra 3D (orbitale) et la lumière
@@ -82,49 +50,79 @@ function initCamera3D(scene) {
   new BABYLON.HemisphericLight("light3D", new BABYLON.Vector3(1, 1, 0), scene);
 }
 
+
+
+
+
+
 /**
  * Méthode qui initialise la caméra 2D (orthographique) et la lumière
  * @param {BABYLON.Scene} scene 
  */
-function initCamera2D(scene) {
+function initCamera2D(scene, axe) {
+
+  let v;
+  let l;
+  switch (axe) {
+    case 'x': v = new BABYLON.Vector3(-10, 0, 0); l = new BABYLON.Vector3(-10, 5, 5); break;
+    case 'y': v = new BABYLON.Vector3(0, -10, 0); l = new BABYLON.Vector3(5, -10, 5); break;
+    case 'z': v = new BABYLON.Vector3(0, 0, -10); l = new BABYLON.Vector3(5, 5, -10); break;
+  }
+
   camera2D = new BABYLON.FreeCamera(
     "Camera2D",
-    new BABYLON.Vector3(0, 0, -10),
+    v,
     scene
   );
   camera2D.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
   camera2D.setTarget(BABYLON.Vector3.Zero());
 
-  updateOrthoCamera(camera2D, canvas2D);
+  updateOrthoCamera();
 
   new BABYLON.HemisphericLight(
     "light2D",
-    new BABYLON.Vector3(5, 5, -10),
+    l,
     scene
   );
+
+  return camera2D;
+
 }
+
+
+
+
+
 
 /**
  * Méthode qui met à jour les paramètres de la caméra orthographique
- * @param {BABYLON.Camera} camera 
- * @param {HTMLCanvasElement} canvas 
- * @param {number} d 
  */
-function updateOrthoCamera(camera, canvas, d = 1) {
-  const ratio = canvas.clientWidth / canvas.clientHeight;
+function updateOrthoCamera() {
 
-  camera.orthoLeft   = -d * ratio;
-  camera.orthoRight  =  d * ratio;
-  camera.orthoTop    =  d;
-  camera.orthoBottom = -d;
+  for (const [key, value] of canvasCamera) {
+
+    let canvas = key;
+    let camera = value;
+
+    const ratio = canvas.clientWidth / canvas.clientHeight;
+
+    camera.orthoLeft   = -ratio;
+    camera.orthoRight  =  ratio;
+    camera.orthoTop    =  1;
+    camera.orthoBottom = -1;
+
+  }
 }
+
+
+
+
+
 
 /**
  * Fonction qui crée et retourne la scène
  */
 function createScene() {
-
-        // --- SCENE 3D ---
     scene = new BABYLON.Scene(engine3D);
     initCamera3D(scene);
 
@@ -132,68 +130,93 @@ function createScene() {
     forme4D = Forme.loadHyperCubeFromCenter("Hypercube", BABYLON.Vector4.Zero(), 1);
     forme3D.build(scene);
 
-    // --- SCENE 2D ---
-    scene2D = new BABYLON.Scene(engine2D);
-    initCamera2D(scene2D);
+    addProjection2D(forme3D, 'z');
+    addProjection2D(forme3D, 'y');
+    addProjection2D(forme3D, 'x');
+}
 
-    // --- PROJECTION 2D ---
+
+
+
+
+
+/**
+ * Méthde qui créé et affiche une nouvelle projection 2D d'une forme 3D sur un axe donné
+ * @param {Forme} forme3D Forme 3D dont on veut afficher une projection 2D
+ * @param {String} axe x, y ou z  
+ */
+function addProjection2D(forme3D, axe) {
+
+    const sidebar = document.getElementById("sidebar-2d");
+    let newCanvas = document.createElement("canvas");
+    newCanvas.id = `renderCanvas2D-${++nbProjections}`;
+    newCanvas.className = "canvas2D";
+    sidebar.appendChild(newCanvas);
+    
+    // Initialisation du moteur
+    let engine2D = new BABYLON.Engine(newCanvas, true);
+    let scene2D = new BABYLON.Scene(engine2D);
+    
+    engine2D.resize();
+
+    let localCamera2D = initCamera2D(scene2D, axe);
+    
+    // Mise à jour de la caméra visualisant la projection
+    const ratio = newCanvas.clientWidth / newCanvas.clientHeight;
+    localCamera2D.orthoLeft = -ratio;
+    localCamera2D.orthoRight = ratio;
+    localCamera2D.orthoTop = 1;
+    localCamera2D.orthoBottom = -1;
+
+    canvasCamera.set(newCanvas, localCamera2D);
+
     const clone = forme3D.getClone();
-
-    forme3D.projection2D = new Projection2D(
-      "Cube2D",
+    const maProjection = new Projection2D(
+      `Projection2D-${axe}`,
       clone.sommets,
       clone.aretes,
-      camera2D
+      localCamera2D,
+      axe
     );
 
-    forme3D.projection2D.formeParente = forme3D;
-    forme3D.projection2D.build(scene2D);
-    forme3D.projection2D.update();
+    maProjection.formeParente = forme3D;
+    maProjection.build(scene2D);
+    
+    registerProjection(maProjection);
+    projections.push(maProjection);
 
-    initControls({
-      forme3D,
-      forme4D,
-      camera3D,
-      camera2D,
-      scene3D: scene,
-      scene2D
+    engine2D.runRenderLoop(() => {
+      scene2D.render();
     });
 
+    window.addEventListener("resize", () => {
+        engine2D.resize();
+        const r = newCanvas.clientWidth / newCanvas.clientHeight;
+        localCamera2D.orthoLeft = -r;
+        localCamera2D.orthoRight = r;
+    });
+}
 
-    return scene;
 
-};
+
+
+
 
 // Création de la scène
 createScene();
+initControls({ forme3D, forme4D, camera3D, scene3D: scene });
 
 // Boucle de rendu 3D
 engine3D.runRenderLoop(() => {
   scene.render();
 });
 
-// Boucle de rendu 2D
-engine2D.runRenderLoop(() => {
-  scene2D.render();
-});
-
-// Redimensionnement
-window.addEventListener("resize", () => {
-  engine3D.resize();
-  engine2D.resize();
-
-  if (camera2D) {
-    updateOrthoCamera(camera2D, canvas2D);
-  }
-});
 
 
-//Exports
+
+
+
 export {
   forme3D,
-  forme4D,
-  scene,
-  camera3D,
-  camera2D,
-  scene2D
+  forme4D
 };

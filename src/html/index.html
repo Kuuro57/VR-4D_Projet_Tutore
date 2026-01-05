@@ -1,67 +1,43 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <title>Babylon test</title>
+  <title>Babylon Test</title>
   <link rel="stylesheet" href="../css/index.css">
-
   <script src="https://preview.babylonjs.com/babylon.js"></script>
   <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-
 </head>
-
 <body>
 
   <div id="container">
     <canvas id="renderCanvas3D"></canvas>
-    <canvas id="renderCanvas2D"></canvas>
+    
+    <div id="sidebar-2d">
+      </div>
   </div>
+
+  <div id="ui-controls">
+    <button id="btn-rotation-x">Rotation X</button>
+    <button id="btn-rotation-y">Rotation Y</button>
+    <button id="btn-rotation-z">Rotation Z</button>
+    
+    <div class="panel" id="translation-panel">
+      <span class="label">Translation :</span>
+      <div class="axis"><span>X</span><button id="tx-minus">-</button><button id="tx-plus">+</button></div>
+      <div class="axis"><span>Y</span><button id="ty-minus">-</button><button id="ty-plus">+</button></div>
+      <div class="axis"><span>Z</span><button id="tz-minus">-</button><button id="tz-plus">+</button></div>
+    </div>
+
+    <div class="panel" id="homothetie-panel">
+      <span class="label">Homothétie :</span>
+      <div class="axis"><button id="homothetie-minus">-</button><button id="homothetie-plus">+</button></div>
+    </div>
+
+    <button id="btn-faces-toggle">Cacher les faces</button>
+    <button id="btn-wire-toggle">Cacher vue fil de fer</button>
+  </div>
+
   <script src="../js/main.js" type="module"></script>
   <script src="../js/controls.js" type="module"></script>
-
-  <button id="btn-rotation-x">Rotation X</button>
-  <button id="btn-rotation-y">Rotation Y</button>
-  <button id="btn-rotation-z">Rotation Z</button>
-  
-  <div id="translation-panel">
-    <span>Translation :</span>
-    <div class="axis">
-      <span>X</span>
-      <button id="tx-minus">-</button>
-      <button id="tx-plus">+</button>
-    </div>
-
-    <div class="axis">
-      <span>Y</span>
-      <button id="ty-minus">-</button>
-      <button id="ty-plus">+</button>
-    </div>
-
-    <div class="axis">
-      <span>Z</span>
-      <button id="tz-minus">-</button>
-      <button id="tz-plus">+</button>
-    </div>
-  </div>
-  <div id="homothetie-panel">
-    <span>Homothétie :</span>
-    <div class="axis">
-      <button id="homothetie-minus">-</button>
-      <button id="homothetie-plus">+</button>
-    </div>
-  </div>
-  <button id="btn-faces-toggle">Cacher les faces</button>
-  <button id="btn-wire-toggle">Cacher la vue fil de fer</button>
-
-  <div id="kbd-hint">
-    <h3>Contrôles</h3>
-    <div class="kbd-inside">
-      <span class="kbd">O</span> : Cube (3D)
-    </div>
-    <div class="kbd-inside">
-      <span class="kbd" id="kbd2">P</span> : Hypercube (4D)
-    </div>
-  </div>
-
 </body>
 </html>
