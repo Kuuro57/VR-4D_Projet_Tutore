@@ -77,13 +77,13 @@ function rotation4D (forme, plan) {
     var vectorCentreForme = forme.getVectorCenter();
 
     // Matrice de translation vers (0, 0, 0) et matrice de translation inverse
-    var matrixT = BABYLON.Matrix.FromArray([ -vectorCentreForme.x, -vectorCentreForme.y, -vectorCentreForme.z, -vectorCentreForme.w, 1 ]);
-    var matrixT_Inv = BABYLON.Matrix.FromArray([ vectorCentreForme.x, vectorCentreForme.y, vectorCentreForme.z, vectorCentreForme.w, 1 ]);
+    var matrixT = BABYLON.Matrix.FromArray([ -vectorCentreForme.x, -vectorCentreForme.y, -vectorCentreForme.z, -vectorCentreForme.w]);
+    var matrixT_Inv = BABYLON.Matrix.FromArray([ vectorCentreForme.x, vectorCentreForme.y, vectorCentreForme.z, vectorCentreForme.w]);
 
     // Pour chaque sommet
     forme.sommets.forEach(sommet => {
 
-        let matrixSommet = new BABYLON.Matrix.FromArray([sommet.vector.x, sommet.vector.y, sommet.vector.z, sommet.vector.w, 1]);
+        let matrixSommet = new BABYLON.Matrix.FromArray([sommet.vector.x, sommet.vector.y, sommet.vector.z, sommet.vector.w]);
 
         // Translater le point avec la matrice de translation vers le centre
         let tmp1 = matrixT.add(matrixSommet);
@@ -102,6 +102,8 @@ function rotation4D (forme, plan) {
     forme.update();
 
 }
+
+//TODO double rotation4D ?
 
 
 // Export
