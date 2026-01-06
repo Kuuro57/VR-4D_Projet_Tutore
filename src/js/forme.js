@@ -209,9 +209,9 @@ class Forme {
 
         //ajout des sommets (original + miroir) dans l'hypercube
         cube.sommets.forEach(sommet => {
-            let newSommet = new Sommet(sommet.name + "'", new BABYLON.Vector4(sommet.vector.x, sommet.vector.y, sommet.vector.z, 0));
+            let newSommet = new Sommet(sommet.name + "'", new BABYLON.Vector4(sommet.vector.x, sommet.vector.y, sommet.vector.z, -size/2));
             //sommet du cube original
-            hypercube.sommets.push(new Sommet(sommet.name, new BABYLON.Vector4(sommet.vector.x, sommet.vector.y, sommet.vector.z, size)));
+            hypercube.sommets.push(new Sommet(sommet.name, new BABYLON.Vector4(sommet.vector.x, sommet.vector.y, sommet.vector.z, size/2)));
             //sommet miroir
             hypercube.sommets.push(newSommet);
         });

@@ -128,7 +128,7 @@ function createScene() {
     scene = new BABYLON.Scene(engine3D);
     initCamera3D(scene);
 
-    forme4D = Forme.loadHyperCubeFromCenter("Hypercube", BABYLON.Vector4.Zero(), 1);
+    forme4D = Forme.loadHyperCubeFromCenter("Hypercube", BABYLON.Vector4.Zero(), 1.3);
 
   let clone = forme4D.getClone();
   projection3D = new Projection3D("Projection3D-Main", clone.sommets, clone.aretes, camera3D, 'w');
