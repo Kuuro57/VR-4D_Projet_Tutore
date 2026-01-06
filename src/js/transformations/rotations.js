@@ -99,9 +99,7 @@ function rotation4D (forme, plan) {
     });
 
     // Mise à jour récursive de la projection de la forme 4D
-    console.log(forme);
     forme.update();
-    console.log(forme);
 
 }
 
