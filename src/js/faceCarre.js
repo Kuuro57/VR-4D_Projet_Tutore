@@ -78,6 +78,7 @@ class FaceCarre {
         // Matériau
         const mat = new BABYLON.StandardMaterial(`${this.name}_mat`, scene);
         mat.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+        mat.alpha = 0.5; // opacité
         mat.backFaceCulling = false; // = sideOrientation double side (2 cotes visibles)
         mesh.material = mat;
 

@@ -16,8 +16,8 @@ const PLANS_4D = ["xy", "xz", "xw", "yz", "yw", "zw"];
 const memoire = {
   formePrincipale: null, // ici : forme 4D (ou éventuellement une projection qui a formeParente)
   listeDesProjections2D: [],
-  facesVisibles: false,
-  filDeFerVisible: false,
+  facesVisibles: true,
+  filDeFerVisible: true,
 };
 
 // Stockage des chronomètres
@@ -30,9 +30,9 @@ const chronos = {
 /**
  * Configure les formes de départ et active les boutons du HTML
  */
-export function initControls({ forme3D, forme4D, camera3D, scene3D }) {
-  // Version 4D : on pilote la forme 4D
-  memoire.formePrincipale = forme4D;
+export function initControls({ forme3D, forme4D, projectionPrincipale, camera3D, scene3D }) {
+  // Version 4D : on pilote la forme 4D via sa projection principale (qui porte les meshes visibles)
+  memoire.formePrincipale = projectionPrincipale ?? forme4D;
   activerBoutons();
 }
 
@@ -172,9 +172,8 @@ function activerBoutons() {
   document.getElementById("btn-faces-toggle")?.addEventListener("click", (e) => {
     memoire.facesVisibles = !memoire.facesVisibles;
 
-    // on tente sur la forme principale, sinon sur la parente si c'est une projection
-    const cible = memoire.formePrincipale?.formeParente ?? memoire.formePrincipale;
-    cible?.toggleFaces?.(memoire.facesVisibles);
+    // Propage sur la forme principale + toutes les projections enregistrées
+    getTargets().forEach((cible) => cible?.toggleFaces?.(memoire.facesVisibles));
 
     e.target.textContent = memoire.facesVisibles ? "Cacher les faces" : "Afficher les faces";
   });
@@ -182,8 +181,7 @@ function activerBoutons() {
   document.getElementById("btn-wire-toggle")?.addEventListener("click", (e) => {
     memoire.filDeFerVisible = !memoire.filDeFerVisible;
 
-    const cible = memoire.formePrincipale?.formeParente ?? memoire.formePrincipale;
-    cible?.toggleWireframe?.(memoire.filDeFerVisible);
+    getTargets().forEach((cible) => cible?.toggleWireframe?.(memoire.filDeFerVisible));
 
     e.target.textContent = memoire.filDeFerVisible ? "Cacher fil de fer" : "Afficher fil de fer";
   });
@@ -194,4 +192,10 @@ function activerBoutons() {
     gererHomotethie("+", false);
     gererHomotethie("-", false);
   };
+}
+
+// Retourne l'ensemble des formes sur lesquelles appliquer l'affichage (projection principale + projections enregistrées)
+function getTargets() {
+  const candidates = [memoire.formePrincipale, memoire.formePrincipale?.formeParente, ...memoire.listeDesProjections2D];
+  return Array.from(new Set(candidates.filter(Boolean)));
 }
