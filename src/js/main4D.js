@@ -125,16 +125,14 @@ function updateOrthoCamera() {
  * Fonction qui crée et retourne la scène
  */
 function createScene() {
-    scene = new BABYLON.Scene(engine3D);
-    initCamera3D(scene);
+  scene = new BABYLON.Scene(engine3D);
+  initCamera3D(scene);
 
-    forme4D = Forme.loadHyperCubeFromCenter("Hypercube", BABYLON.Vector4.Zero(), 1.3);
+  forme4D = Forme.loadHyperCubeFromCenter("Hypercube", BABYLON.Vector4.Zero(), 1.3);
 
   let clone = forme4D.getClone();
-  projection3D = new Projection3D("Projection3D-Main", clone.sommets, clone.aretes, camera3D, 'w');
 
-  addFaces(projection3D);
-  addCells(projection3D);
+  projection3D = new Projection3D("Projection3D-Main", clone.sommets, clone.aretes, clone.faces, camera3D, 'w');
 
   // lien parent
   projection3D.formeParente = forme4D;
@@ -143,7 +141,6 @@ function createScene() {
   projection3D.build(scene);
   projection3D.update();
 
-  // (optionnel mais recommandé si vos contrôles attendent un register)
   registerProjection(projection3D);
   projections.push(projection3D);
 
@@ -153,8 +150,6 @@ function createScene() {
   addProjection3D(forme4D, 'x');
   addProjection3D(forme4D, 'w');
 }
-
-
 
 
 
@@ -194,12 +189,10 @@ function addProjection3D(forme4D, axe) {
       `Projection3D-${axe}`,
       clone.sommets,
       clone.aretes,
+      clone.faces,
       localCamera2D,
       axe
     );
-
-    addFaces(maProjection);
-    addCells(maProjection);
 
     maProjection.formeParente = forme4D;
     maProjection.build(scene2D);
@@ -222,105 +215,6 @@ function addProjection3D(forme4D, axe) {
 }
 
 
-/**
- * Méthode qui créé et affiche les faces des cubes 4D
- * @param {Projection3D} projection projection sur laquelle iront les faces
- * @returns 
- */
-function addFaces(projection) {
-  if (!projection || (projection.faces && projection.faces.length > 0)) return;
-
-  const facesName = new Map(projection.sommets.map((s) => [s.name, s]));
-  projection.faces = projection.faces || [];
-
-  // cubes à projeter
-  const cubes = [
-    ["A", "B", "C", "D", "E", "F", "G", "H"], // cube de base
-    ["A'", "B'", "C'", "D'", "E'", "F'", "G'", "H'"] // cube 4D
-  ];
-
-  // créé une face à partir de noms des sommets
-  const createQuad = (s1Name, s2Name, s3Name, s4Name) => {
-    return new FaceCarre(
-      `${s1Name}${s2Name}${s3Name}${s4Name}`,
-      facesName.get(s1Name),
-      facesName.get(s2Name),
-      facesName.get(s3Name),
-      facesName.get(s4Name)
-    );
-  };
-
-  // pour chaque cube de base et 4D
-  cubes.forEach((vertexNames) => {
-    // on vérifie que tous les sommets existent
-    if (!vertexNames.every((name) => facesName.has(name))) return;
-
-    // on assigne des noms aux sommets
-    const [A, B, C, D, E, F, G, H] = vertexNames;
-
-    // face bas
-    projection.faces.push(createQuad(A, B, C, D));
-    // face haut
-    projection.faces.push(createQuad(E, F, G, H));
-
-    // faces sur les côtés
-    projection.faces.push(createQuad(A, B, F, E));
-    projection.faces.push(createQuad(B, C, G, F));
-    projection.faces.push(createQuad(C, D, H, G));
-    projection.faces.push(createQuad(D, A, E, H));
-  });
-}
-
-/**
- * Méthode qui créé et affiche les fils des cubes 4D
- * @param {Projection3D} projection projection sur laquelle iront les fils
- * @returns 
- */
-function addCells(projection) {
-  if (!projection) return;
-
-  projection.faces = projection.faces || [];
-  // on associe les noms des sommets à leurs objets
-  const facesName = new Map(projection.sommets.map((s) => [s.name, s]));
-
-  // faces du cubes
-  const baseFaces = [
-    ["A", "B", "C", "D"],
-    ["E", "F", "G", "H"],
-    ["A", "B", "F", "E"],
-    ["B", "C", "G", "F"],
-    ["C", "D", "H", "G"],
-    ["D", "A", "E", "H"],
-  ];
-
-  const allHave = (names) => names.every((n) => facesName.has(n));
-
-  // créé une face à partir de noms des sommets
-  const quad = (n1, n2, n3, n4, name) => new FaceCarre(name, facesName.get(n1), facesName.get(n2), facesName.get(n3), facesName.get(n4));
-
-  baseFaces.forEach((face) => {
-    // faces du cube 4D
-    const primes = face.map((n) => `${n}'`);
-    if (!allHave([...face, ...primes])) return;
-
-    const [a, b, c, d] = face;
-    const [ap, bp, cp, dp] = primes;
-
-    // création des faces sur les côtés de l'hypercube
-    projection.faces.push(
-      quad(a, ap, bp, b, `${a}${ap}${bp}${b}`),
-      quad(b, bp, cp, c, `${b}${bp}${cp}${c}`),
-      quad(c, cp, dp, d, `${c}${cp}${dp}${d}`),
-      quad(d, dp, ap, a, `${d}${dp}${ap}${a}`)
-    );
-  });
-}
-
-
-
-
-
-
 // Création de la scène
 createScene();
 initControls({ forme4D, projectionPrincipale: projection3D, camera3D, scene3D: scene });
@@ -329,8 +223,6 @@ initControls({ forme4D, projectionPrincipale: projection3D, camera3D, scene3D: s
 engine3D.runRenderLoop(() => {
   scene.render();
 });
-
-
 
 
 

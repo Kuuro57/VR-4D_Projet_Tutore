@@ -52,11 +52,13 @@ class Forme {
      * @param {String} nom
      * @param {Sommet[]} sommetsParameters 
      * @param {Arete[]} aretesParameters 
+     * @param {FaceCarre[]} facesParameters 
      */
-    constructor(nom,sommetsParameters, aretesParameters) {
+    constructor(nom,sommetsParameters, aretesParameters, facesParameters=[]) {
         this.name = nom;
         this.sommets = sommetsParameters;
         this.aretes = aretesParameters;
+        this.faces = facesParameters;
     }
 
 
@@ -146,10 +148,6 @@ class Forme {
 
 
 
-
-
-    //TODO Ajouter des faces pour un hypercube
-
     /**
      * méthode pour afficher ou cacher les faces de la forme
      * @param {Boolean} visible 
@@ -163,8 +161,6 @@ class Forme {
         });
         
     }
-
-
 
 
 
@@ -190,7 +186,6 @@ class Forme {
 
     }
     
-
 
 
 
@@ -251,6 +246,58 @@ class Forme {
 
         //translation du cube pour le mettre au bon endroit
         translation(hypercube,vector);
+
+
+        // ajout des faces de l'hypercube
+        const facesName = new Map(hypercube.sommets.map((s) => [s.name, s]));
+        hypercube.faces = hypercube.faces || [];
+
+        // cubes à projeter
+        const cubes = [
+            ["A", "B", "C", "D", "E", "F", "G", "H"], // cube de base
+            ["A'", "B'", "C'", "D'", "E'", "F'", "G'", "H'"] // cube 4D
+        ];
+
+        // helper pour créer une face à partir de noms des sommets
+        const createQuad = (s1Name, s2Name, s3Name, s4Name) => {
+            return new FaceCarre(
+            `${s1Name}${s2Name}${s3Name}${s4Name}`,
+            facesName.get(s1Name),
+            facesName.get(s2Name),
+            facesName.get(s3Name),
+            facesName.get(s4Name)
+            );
+        };
+
+        //faces naturelles
+        cubes.forEach((vertexNames) => {
+            if (!vertexNames.every((name) => facesName.has(name))) return;
+
+            // on assigne des noms aux sommets
+            const [A, B, C, D, E, F, G, H] = vertexNames;
+
+            // face bas
+            hypercube.faces.push(createQuad(A, B, C, D));
+            // face haut
+            hypercube.faces.push(createQuad(E, F, G, H));
+
+            // faces sur les côtés
+            hypercube.faces.push(createQuad(A, B, F, E));
+            hypercube.faces.push(createQuad(B, C, G, F));
+            hypercube.faces.push(createQuad(C, D, H, G));
+            hypercube.faces.push(createQuad(D, A, E, H));
+        });
+        
+        //faces latérales entre les deux cubes
+        // Si u est relié à v, alors la face est (u, v, v', u')
+        cube.aretes.forEach((arete) => {
+            const u = arete.sommet1.name;
+            const v = arete.sommet2.name;
+            const uP = `${u}'`;
+            const vP = `${v}'`;
+
+            hypercube.faces.push(createQuad(u, v, vP, uP));
+        });
 
         return hypercube;
         
@@ -351,8 +398,19 @@ class Forme {
             ));
         });
 
+        // Clone des faces
+        let newListFaces = [];
+        this.faces.forEach(face => {
+            newListFaces.push(new FaceCarre(face.name,
+                getS(face.sommet1.name),
+                getS(face.sommet2.name),
+                getS(face.sommet3.name),
+                getS(face.sommet4.name)
+            ));
+        });
+
         // Création de la nouvelle forme clonée
-        return new Forme(this.name + "_copy", newListSommets, newListAretes);
+        return new Forme(this.name + "_copy", newListSommets, newListAretes, newListFaces);
 
     }
 

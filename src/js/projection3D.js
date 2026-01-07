@@ -26,13 +26,15 @@ class Projection3D extends Forme {
     /**
      * Constructeur de la forme
      * @param {String} nom
-     * @param {Sommet[]} sommetsParameters 
-     * @param {Arete[]} aretesParameters 
+     * @param {Sommet[]} sommets
+     * @param {Arete[]} aretes
+     * @param {FaceCarre[]} faces
      * @param {BABYLON.Camera} camera3D
      * @param {String} axe
      */
-    constructor(nom, sommets, aretes, camera3D, axe) {
+    constructor(nom, sommets, aretes, faces, camera3D, axe) {
         super(nom, sommets, aretes);
+        this.faces = faces;
         this.camera3D = camera3D;
         this.axe = axe;
     }
@@ -48,8 +50,6 @@ class Projection3D extends Forme {
         // Position de la caméra sur l'axe de profondeur choisi
         const camPos = 2.0;
 
-        const EPS = 1e-6;
-
         // helper pour retrouver les sommets par leur nom
         const getS = (name) => this.sommets.find(s => s.name === name);
 
@@ -60,7 +60,7 @@ class Projection3D extends Forme {
             const z = s4.vector.z;
             const w = s4.vector.w;
 
-            // depth = coordonnée "aplaties"/profondeur, et (a,b,c) = coordonnées gardées
+            // depth = coordonnée aplatie, et (a,b,c) = coordonnées gardées
             let depth, a, b, c;
 
             switch (this.axe) {
@@ -84,7 +84,11 @@ class Projection3D extends Forme {
 
             // Projection perspective le long de l'axe choisi
             let denom = (camPos - depth);
-            if (Math.abs(denom) < EPS) denom = (denom >= 0 ? EPS : -EPS);
+            if (0 < denom && denom < 1e-6) {
+                denom = 1e-6;
+            } else if(-1e-6< denom && denom <0) {
+                denom = -1e-6;
+            }
 
             const scale = focal / denom;
 
@@ -98,9 +102,6 @@ class Projection3D extends Forme {
         // mise à jour des arêtes et faces
         this.aretes.forEach(a => a.update());
         this.faces.forEach(f => f.update?.());
-
-        // mise à jour récursive des projections
-        //if (this.projection2D) this.projection2D.update();
     }
 
 

@@ -103,8 +103,6 @@ function rotation4D (forme, plan) {
 
 }
 
-//TODO double rotation4D ?
-
 
 // Export
 export {
