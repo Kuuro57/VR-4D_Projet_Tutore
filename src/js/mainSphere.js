@@ -147,6 +147,8 @@ function createScene() {
 
 
 
+
+
 /**
  * Méthde qui créé et affiche une nouvelle projection 2D d'une forme 3D sur un axe donné
  * @param {Forme} forme3D Forme 3D dont on veut afficher une projection 2D
