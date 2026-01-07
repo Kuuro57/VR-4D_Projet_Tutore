@@ -303,6 +303,109 @@ class Forme {
         
     }
 
+    /**
+     * méthode statique qui permet de créer une forme de sphère à partir du centre, du rayon et du nombre de segments
+     * @param {String} name 
+     * @param {BABYLON.Vector3} center 
+     * @param {Number} radius 
+     * @param {Number} segments 
+     * @returns 
+     */
+    static loadSphereFromCenter(name, center, radius, segments) {
+        const sommets = [];
+
+        //de haut en bas (theta)
+        for (let i = 0; i <= segments; i++) {
+            const theta = i * Math.PI / segments;
+            //autour du cercle (phi)
+            for (let j = 0; j <= segments; j++) {
+                const phi = j * 2 * Math.PI / segments;
+                const x = center.x + radius * Math.sin(theta) * Math.cos(phi);
+                const y = center.y + radius * Math.sin(theta) * Math.sin(phi);
+                const z = center.z + radius * Math.cos(theta);
+                sommets.push(new Sommet(`S_${i}${j}`, new BABYLON.Vector3(x, y, z)));
+            }
+        
+        }
+        const aretes = [];
+
+        //arêtes entre un sommet et ses voisins directs (horizontales et verticales)
+        for (let i = 0; i < segments; i++) {
+            for (let j = 0; j < segments; j++) {
+                const current = i * (segments + 1) + j;
+                const next = current + 1;
+                const nextRow = current + (segments + 1);
+                aretes.push(new Arete(`A_${i}_${j}`, sommets[current], sommets[next]));
+                aretes.push(new Arete(`B_${i}_${j}`, sommets[current], sommets[nextRow]));
+            }
+        }
+        return new Forme(name, sommets, aretes);
+    }
+
+    /**
+     * Méthode statique qui permet de créer une hypersphère à partir du centre, du rayon et du nombre de segments
+     * @param {String} name 
+     * @param {BABYLON.Vector4} center 
+     * @param {Number} radius 
+     * @param {Number} segments 
+     * @returns la forme (l'hypersphère)
+     */
+    static loadHyperSphereFromCenter(name, center, radius, segments) {
+
+        const hypersphere = new Forme(name, [], [], []);
+
+        // helper pour stocker les sommets en grille 3D
+        const grid = Array.from({ length: segments + 1 }, () =>
+            Array.from({ length: segments + 1 }, () =>
+            Array(segments + 1)
+            )
+        );
+
+        // Sommets de l'hypersphère : x^2+y^2+z^2+w^2 = R^2
+        //de l'avant vers l'arrière (chi)
+        //revient à fixer w et calculer tous les points de la couche correspondante (sphère 3D)
+        for (let k = 0; k <= segments; k++) {
+            const chi = (k * Math.PI) / segments;
+            const w   = radius * Math.cos(chi);
+            const r3  = radius * Math.sin(chi); // rayon de la sphère 3D à cette couche
+
+            //de haut en bas (theta)
+            for (let i = 0; i <= segments; i++) {
+            const theta = (i * Math.PI) / segments;
+
+                //autour du cercle (phi)
+                for (let j = 0; j <= segments; j++) {
+                    const phi = (j * 2 * Math.PI) / segments;
+
+                    const x = r3 * Math.sin(theta) * Math.cos(phi);
+                    const y = r3 * Math.sin(theta) * Math.sin(phi);
+                    const z = r3 * Math.cos(theta);
+
+                    const s = new Sommet(`S_${k}_${i}_${j}`, new BABYLON.Vector4(x, y, z, w));
+                    hypersphere.sommets.push(s);
+                    grid[k][i][j] = s;
+                }
+            }
+        }
+
+        // Arêtes : voisins en chi / theta / phi
+        for (let k = 0; k <= segments; k++) {
+            for (let i = 0; i <= segments; i++) {
+                for (let j = 0; j <= segments; j++) {
+                    const a = grid[k][i][j];
+
+                    // création de l'arête entre le sommet et ses voisins directs (latéral, vertical, profondeur)
+                    if (j < segments) hypersphere.aretes.push(new Arete(`P_${k}_${i}_${j}`, a, grid[k][i][j + 1]));
+                    if (i < segments) hypersphere.aretes.push(new Arete(`T_${k}_${i}_${j}`, a, grid[k][i + 1][j]));
+                    if (k < segments) hypersphere.aretes.push(new Arete(`C_${k}_${i}_${j}`, a, grid[k + 1][i][j]));
+                }
+            }
+        }
+
+        translation(hypersphere, center);
+
+        return hypersphere;
+    }
 
 
 
@@ -339,7 +442,6 @@ class Forme {
 
 
 
-
     /**
      * Methode d'affichage de la forme dans la scène
      * @param {BABYLON.Scene} scene 
@@ -349,7 +451,6 @@ class Forme {
         this.aretes.forEach(a => a.build(scene));
         this.faces.forEach(f => f.build(scene));
     }
-
 
 
 
