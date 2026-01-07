@@ -132,7 +132,7 @@ function createScene() {
 
   let clone = forme4D.getClone();
 
-  projection3D = new Projection3D("Projection3D-Main", clone.sommets, clone.aretes, clone.faces, camera3D, 'w');
+  projection3D = new Projection3D("Projection3D-Main", clone.sommets, clone.aretes, clone.faces, camera3D, 'w', true);
 
   // lien parent
   projection3D.formeParente = forme4D;
@@ -191,7 +191,8 @@ function addProjection3D(forme4D, axe) {
       clone.aretes,
       clone.faces,
       localCamera2D,
-      axe
+      axe,
+      false
     );
 
     maProjection.formeParente = forme4D;
