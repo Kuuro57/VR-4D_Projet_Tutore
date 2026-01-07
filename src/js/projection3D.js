@@ -32,11 +32,12 @@ class Projection3D extends Forme {
      * @param {BABYLON.Camera} camera3D
      * @param {String} axe
      */
-    constructor(nom, sommets, aretes, faces, camera3D, axe) {
+    constructor(nom, sommets, aretes, faces, camera3D, axe, recentre = false) {
         super(nom, sommets, aretes);
         this.faces = faces;
         this.camera3D = camera3D;
         this.axe = axe;
+        this.recentre = recentre;
     }
 
 
@@ -53,12 +54,14 @@ class Projection3D extends Forme {
         // helper pour retrouver les sommets par leur nom
         const getS = (name) => this.sommets.find(s => s.name === name);
 
+        const centre4D = this.recentre ? this.formeParente.getVectorCenter() : null;
+
         this.formeParente.sommets.forEach(s4 => {
-            // Coordonnées 4D
-            const x = s4.vector.x;
-            const y = s4.vector.y;
-            const z = s4.vector.z;
-            const w = s4.vector.w;
+            // Coordonnées 4D (centrées si demandé)
+            const x = s4.vector.x - (centre4D?.x ?? 0);
+            const y = s4.vector.y - (centre4D?.y ?? 0);
+            const z = s4.vector.z - (centre4D?.z ?? 0);
+            const w = s4.vector.w - (centre4D?.w ?? 0);
 
             // depth = coordonnée aplatie, et (a,b,c) = coordonnées gardées
             let depth, a, b, c;
