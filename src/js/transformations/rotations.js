@@ -1,4 +1,4 @@
-import { Forme } from "../forme.js";
+import { Forme } from "../formes/forme.js";
 import { matriceRotationX, matriceRotationY, matriceRotationZ } from "./matrices3D.js";
 import { matriceRotationXY, matriceRotationXZ, matriceRotationXW, 
     matriceRotationYZ, matriceRotationYW, matriceRotationZW } from "./matrices4D.js";

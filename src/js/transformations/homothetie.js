@@ -1,4 +1,4 @@
-import {Forme} from "../forme.js";
+import {Forme} from "../formes/forme.js";
 
 /**
  * Methode pour effectuer une homothétie sur une forme (peu importe la dimension)

@@ -1,4 +1,4 @@
-import { Forme } from "./forme.js";
+import { Forme } from "../formes/forme.js";
 
 /**
  * Classe représentant une projection 3D d'une forme 4D

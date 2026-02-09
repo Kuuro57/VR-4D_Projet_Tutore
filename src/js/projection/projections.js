@@ -1,5 +1,5 @@
 import { Projection2D } from "../projection2D.js";
-import { Projection3D } from "../projection3D.js";
+import { Projection3D } from "../4D/projection3D.js";
 import { Sommet } from "../sommet.js";
 import { Arete } from "../arete.js";
 

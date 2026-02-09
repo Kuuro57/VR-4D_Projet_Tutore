@@ -1,7 +1,7 @@
 import { Sommet } from "./sommet.js";
 import { Arete } from "./arete.js";
 import { FaceCarre } from "./faceCarre.js";
-import { translation } from "./transformations/translations.js";
+import { translation } from "../transformations/translations.js";
 
 /**
  * Classe représentant une forme 3D ou 4D
@@ -478,40 +478,53 @@ class Forme {
      */
     getClone() {
 
-        let getS = (name) => newListSommets.find(s => s.name === name);
+        // Map pour une recherche rapide des sommets
+        const sommetsMap = new Map();
 
         // Clone des sommets
-        let newListSommets = [];
-        this.sommets.forEach(sommet => {
-            if(sommet.vector instanceof BABYLON.Vector4){
-                newListSommets.push(new Sommet(sommet.name, new BABYLON.Vector4(sommet.vector.x, sommet.vector.y, sommet.vector.z, sommet.vector.w)));
-            } else {
-                newListSommets.push(new Sommet(sommet.name, new BABYLON.Vector3(sommet.vector.x, sommet.vector.y, sommet.vector.z)));
-            }
+        const newListSommets = this.sommets.map(sommet => {
+            const clonedSommet = new Sommet(
+                sommet.name, 
+                sommet.vector.clone()
+            );
+            sommetsMap.set(sommet.name, clonedSommet);
+            return clonedSommet;
         });
+
+        const getS = (name) => sommetsMap.get(name);
 
         // Clone des arêtes
-        let newListAretes = [];
-        this.aretes.forEach(arete => {
-            newListAretes.push(new Arete(arete.name, 
-                getS(arete.sommet1.name),
+        const newListAretes = this.aretes.map(arete => 
+            new Arete(
+                arete.name, 
+                getS(arete.sommet1.name), 
                 getS(arete.sommet2.name)
-            ));
-        });
+            )
+        );
 
         // Clone des faces
-        let newListFaces = [];
-        this.faces.forEach(face => {
-            newListFaces.push(new FaceCarre(face.name,
+        const newListFaces = this.faces.map(face => 
+            new FaceCarre(
+                face.name,
                 getS(face.sommet1.name),
                 getS(face.sommet2.name),
                 getS(face.sommet3.name),
                 getS(face.sommet4.name)
-            ));
-        });
+            )
+        );
 
-        // Création de la nouvelle forme clonée
-        return new Forme(this.name + "_copy", newListSommets, newListAretes, newListFaces);
+        // Création de la nouvelle forme
+        const clone = new Forme(this.name + "_copy", newListSommets, newListAretes, newListFaces);
+
+        // Clone des projections si elles existent
+        if (this.projection2D.length > 0) {
+            clone.projection2D = this.projection2D.map(p => p.getClone());
+        }
+        if (this.projection3D.length > 0) {
+            clone.projection3D = this.projection3D.map(p => p.getClone());
+        }
+
+        return clone;
 
     }
 

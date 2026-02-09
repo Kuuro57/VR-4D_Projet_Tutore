@@ -1,6 +1,6 @@
-import { Forme } from "./forme.js";
-import { Projection3D } from "./projection3D.js";
-import { FaceCarre } from "./faceCarre.js";
+import { Forme } from "../../forme.js";
+import { Projection3D } from "../projection3D.js";
+import { FaceCarre } from "../../faceCarre.js";
 import { initControls, registerProjection } from "./controls4D.js";
 
 

@@ -1,7 +1,5 @@
-import { Forme } from "./forme.js";
-import { Projection3D } from "./projection3D.js";
-import { FaceCarre } from "./faceCarre.js";
-import { initControls, registerProjection } from "./controls4D.js";
+import { Forme } from "../forme.js";
+import { Projection2D } from "../projection2D.js";
 
 
 // Récupération des canvas
@@ -20,8 +18,7 @@ let camera3D;
 let camera2D;
 
 // Formes
-let forme4D;
-let projection3D;
+let forme3D;
 
 let nbProjections = 0;
 let canvasCamera = new Map();
@@ -68,7 +65,6 @@ function initCamera2D(scene, axe) {
     case 'x': v = new BABYLON.Vector3(-10, 0, 0); l = new BABYLON.Vector3(-10, 5, 5); break;
     case 'y': v = new BABYLON.Vector3(0, -10, 0); l = new BABYLON.Vector3(5, -10, 5); break;
     case 'z': v = new BABYLON.Vector3(0, 0, -10); l = new BABYLON.Vector3(5, 5, -10); break;
-    case 'w': v = new BABYLON.Vector3(-10, 0, 0); l = new BABYLON.Vector3(-10, 5, 5); break;
   }
 
   camera2D = new BABYLON.FreeCamera(
@@ -125,32 +121,18 @@ function updateOrthoCamera() {
  * Fonction qui crée et retourne la scène
  */
 function createScene() {
-  scene = new BABYLON.Scene(engine3D);
-  initCamera3D(scene);
+    scene = new BABYLON.Scene(engine3D);
+    initCamera3D(scene);
 
-  forme4D = Forme.loadHyperCubeFromCenter("Hypercube", BABYLON.Vector4.Zero(), 1.3);
+    forme3D = Forme.loadCubeFromCenter("Cube", BABYLON.Vector3.Zero(), 1);
+    forme3D.build(scene);
 
-  let clone = forme4D.getClone();
-
-  // Projection principale : on ne recentre pas pour que les translations soient visibles
-  projection3D = new Projection3D("Projection3D-Main", clone.sommets, clone.aretes, clone.faces, camera3D, 'w', false);
-
-  // lien parent
-  projection3D.formeParente = forme4D;
-
-  // build + première mise à jour
-  projection3D.build(scene);
-  projection3D.update();
-
-  registerProjection(projection3D);
-  projections.push(projection3D);
-
-
-  addProjection3D(forme4D, 'z');
-  addProjection3D(forme4D, 'y');
-  addProjection3D(forme4D, 'x');
-  addProjection3D(forme4D, 'w');
+    addProjection2D(forme3D, 'z');
+    addProjection2D(forme3D, 'y');
+    addProjection2D(forme3D, 'x');
 }
+
+
 
 
 
@@ -158,9 +140,9 @@ function createScene() {
 /**
  * Méthde qui créé et affiche une nouvelle projection 2D d'une forme 3D sur un axe donné
  * @param {Forme} forme3D Forme 3D dont on veut afficher une projection 2D
- * @param {String} axe x, y, z ou w  
+ * @param {String} axe x, y ou z  
  */
-function addProjection3D(forme4D, axe) {
+function addProjection2D(forme3D, axe) {
 
     const sidebar = document.getElementById("sidebar-2d");
     let newCanvas = document.createElement("canvas");
@@ -185,28 +167,23 @@ function addProjection3D(forme4D, axe) {
 
     canvasCamera.set(newCanvas, localCamera2D);
 
-    const clone = forme4D.getClone();
-    const maProjection = new Projection3D(
-      `Projection3D-${axe}`,
+    const clone = forme3D.getClone();
+    const maProjection = new Projection2D(
+      `Projection2D-${axe}`,
       clone.sommets,
       clone.aretes,
-      clone.faces,
       localCamera2D,
-      axe,
-      true
+      axe
     );
 
-    maProjection.formeParente = forme4D;
+    maProjection.formeParente = forme3D;
     maProjection.build(scene2D);
     
-    registerProjection(maProjection);
     projections.push(maProjection);
 
     engine2D.runRenderLoop(() => {
-  maProjection.update();   // applique la projection avant rendu
-  scene2D.render();
-});
-
+      scene2D.render();
+    });
 
     window.addEventListener("resize", () => {
         engine2D.resize();
@@ -217,9 +194,12 @@ function addProjection3D(forme4D, axe) {
 }
 
 
+
+
+
+
 // Création de la scène
 createScene();
-initControls({ forme4D, projectionPrincipale: projection3D, camera3D, scene3D: scene });
 
 // Boucle de rendu 3D
 engine3D.runRenderLoop(() => {
@@ -229,6 +209,8 @@ engine3D.runRenderLoop(() => {
 
 
 
+
+
 export {
-  forme4D,
+  forme3D,
 };
