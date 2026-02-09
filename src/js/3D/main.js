@@ -1,5 +1,6 @@
-import { Forme } from "../forme.js";
-import { Projection2D } from "../projection2D.js";
+import { Forme } from "../formes/forme.js";
+import { Projection2D } from "../3D/projection2D.js";
+import { linkControls } from "../controls.js";
 
 
 // Récupération des canvas
@@ -127,9 +128,12 @@ function createScene() {
     forme3D = Forme.loadCubeFromCenter("Cube", BABYLON.Vector3.Zero(), 1);
     forme3D.build(scene);
 
+
     addProjection2D(forme3D, 'z');
     addProjection2D(forme3D, 'y');
     addProjection2D(forme3D, 'x');
+
+    linkControls(forme3D);
 }
 
 
@@ -177,6 +181,8 @@ function addProjection2D(forme3D, axe) {
     );
 
     maProjection.formeParente = forme3D;
+    forme3D.projection2D.push(maProjection);
+
     maProjection.build(scene2D);
     
     projections.push(maProjection);

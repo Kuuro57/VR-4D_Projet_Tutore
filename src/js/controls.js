@@ -1,5 +1,5 @@
 import { homothetie } from "./transformations/homothetie.js";
-import { rotation4D } from "./transformations/rotations.js";
+import { rotation3D, rotation4D } from "./transformations/rotations.js";
 import { translation } from "./transformations/translations.js";
 
 
@@ -9,31 +9,62 @@ import { translation } from "./transformations/translations.js";
  * @param {Forme} forme 
  */
 function linkControls (forme) {
+
+    var faceIsVisible = true;
+    var wireIsVisible = true;
     
     document.addEventListener('keydown', (event) => {
 
         const key = event.key;
 
+        // Rotations 4D
+        if (forme.sommets[0].vector instanceof BABYLON.Vector4) {
+            switch (key) {
+                case 'w':
+                    rotation4D(forme, 'xy');
+                    break;
+                case 'x':
+                    rotation4D(forme, 'xz');
+                    break;
+                case 'c':
+                    rotation4D(forme, 'xw');
+                    break;
+                case 'v':
+                    rotation4D(forme, 'yz');
+                    break;
+                case 'b':
+                    rotation4D(forme, 'yw');
+                    break;
+                case 'n':
+                    rotation4D(forme, 'zw');
+                    break;
+
+            }
+        }
+
+
+        // Rotations 3D
+        else if (forme.sommets[0].vector instanceof BABYLON.Vector3) {
+            switch (key) {
+
+                // Rotations 3D
+                case 'w':
+                    rotation3D(forme, 'x');
+                    break;
+                case 'x':
+                    rotation3D(forme, 'y');
+                    break;
+                case 'c':
+                    rotation3D(forme, 'z');
+                    break;
+                case 'v':
+                    rotation3D(forme, 'w');
+                    break;
+            }
+        }
+
+
         switch (key) {
-            // Rotations 4D
-            case 'w':
-                rotation4D(forme, 'xy');
-                break;
-            case 'x':
-                rotation4D(forme, 'xz');
-                break;
-            case 'c':
-                rotation4D(forme, 'xw');
-                break;
-            case 'v':
-                rotation4D(forme, 'yz');
-                break;
-            case 'b':
-                rotation4D(forme, 'yw');
-                break;
-            case 'n':
-                rotation4D(forme, 'zw');
-                break;
 
             // Translations
             case 'u':
@@ -67,6 +98,18 @@ function linkControls (forme) {
                 break;
             case 'ù':
                 homothetie(forme, 0.99);
+                break;
+
+            // Toggle faces
+            case '&':
+                faceIsVisible = !faceIsVisible;
+                forme.toggleFaces(faceIsVisible);
+                break;
+
+            // Toggle wireframe
+            case 'é':
+                wireIsVisible = !wireIsVisible;
+                forme.toggleWireframe(wireIsVisible);
                 break;
         };
         

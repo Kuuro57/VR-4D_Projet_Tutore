@@ -138,6 +138,7 @@ function createScene() {
   // build + première mise à jour
   projection3D.build(scene);
   projection3D.update();
+  forme4D.projection3D.push(projection3D);
 
   projections.push(projection3D);
 

@@ -149,15 +149,15 @@ class Forme {
 
 
     /**
-     * méthode pour afficher ou cacher les faces de la forme
+     * Méthode pour afficher ou cacher les faces des projections de la forme
      * @param {Boolean} visible 
      */
     toggleFaces(visible) {
 
-        this.faces.forEach(face => {
-            if (face.mesh) {
-                face.mesh.isVisible = visible;
-            }
+        [...this.projection2D, ...this.projection3D, this].forEach(proj => {
+            proj.faces.forEach(face => {
+                if (face.mesh) face.mesh.isVisible = visible;
+            });
         });
         
     }
@@ -165,23 +165,15 @@ class Forme {
 
 
     /**
-     * méthode qui permet d'afficher ou cacher les wireframes (sommets et arêtes) de la forme
+     * Méthode qui permet d'afficher ou cacher les wireframes des projections de la forme
      * @param {Boolean} visible 
      */
     toggleWireframe(visible) {
 
-        // Sommets (sphères)
-        this.sommets.forEach(sommet => {
-            if (sommet.mesh) {
-                sommet.mesh.isVisible = visible;
-            }
-        });
-
-        // Arêtes (tubes)
-        this.aretes.forEach(arete => {
-            if (arete.mesh) {
-                arete.mesh.isVisible = visible;
-            }
+        [...this.projection2D, ...this.projection3D, this].forEach(proj => {
+            [...proj.sommets, ...proj.aretes].forEach(obj => {
+                if (obj.mesh) obj.mesh.isVisible = visible;
+            });
         });
 
     }
@@ -190,7 +182,7 @@ class Forme {
 
 
     /**
-     * méthode pour créer un hypercube à partir d'un centre
+     * Méthode pour créer un hypercube à partir d'un centre
      * @param {String} name nom de l'hypercube
      * @param {BABYLON.Vector4} vector coordonnées du centre de l'hypercube
      * @param {Number} size taille d'une arête de l'hypercube
