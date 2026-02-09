@@ -1,6 +1,7 @@
 import { Sommet } from "./sommet.js";
 import { Arete } from "./arete.js";
 import { FaceCarre } from "./faceCarre.js";
+import { FaceTriangle } from "./faceTriangle.js";
 import { translation } from "../transformations/translations.js";
 
 /**
@@ -400,6 +401,80 @@ class Forme {
     }
 
 
+    /**
+     * Méthode statique qui permet de créer une forme de pentachoron (4-simplexe régulier) à partir du centre et de la taille des arêtes
+     * 
+     * @param {String} name 
+     * @param {BABYLON.Vector4} center 
+     * @param {Number} size 
+     * @returns Forme (Pentachore)
+     */
+    static loadPentatopeFromCenter(name, center, size) {
+        const cx = center.x, cy = center.y, cz = center.z, cw = center.w;
+
+        //On commence par créer un tétraèdre régulier dans l'espace 3D (w=0)
+        const p0 = new BABYLON.Vector4(0, 0, 0, 0);
+        const p1 = new BABYLON.Vector4(size, 0, 0, 0);
+        const p2 = new BABYLON.Vector4(size / 2, (Math.sqrt(3) / 2) * size, 0, 0);
+        const p3 = new BABYLON.Vector4(
+            size / 2,
+            size / (2 * Math.sqrt(3)),
+            Math.sqrt(2 / 3) * size,
+            0
+        );
+
+        // Barycentre du tétraèdre
+        const gTet = new BABYLON.Vector4(
+            (p0.x + p1.x + p2.x + p3.x) / 4,
+            (p0.y + p1.y + p2.y + p3.y) / 4,
+            (p0.z + p1.z + p2.z + p3.z) / 4,
+            0
+        );
+
+        // On ajoute un 5ème point pour faire le pentachore, à la même distance de tous les points du tétraèdre que ces points le sont entre eux
+        const h = (Math.sqrt(10) / 4) * size;
+        const p4 = new BABYLON.Vector4(gTet.x, gTet.y, gTet.z, h);
+
+        //On recentre le pentachore sur le centre donné en paramètre
+        const pts = [p0, p1, p2, p3, p4];
+
+        const G = new BABYLON.Vector4(
+            pts.reduce((s, p) => s + p.x, 0) / 5,
+            pts.reduce((s, p) => s + p.y, 0) / 5,
+            pts.reduce((s, p) => s + p.z, 0) / 5,
+            pts.reduce((s, p) => s + p.w, 0) / 5
+        );
+
+        const dx = cx - G.x, dy = cy - G.y, dz = cz - G.z, dw = cw - G.w;
+
+        const labels = ["A", "B", "C", "D", "E"];
+        const sommets = pts.map((p, i) => new Sommet(
+            labels[i],
+            new BABYLON.Vector4(p.x + dx, p.y + dy, p.z + dz, p.w + dw)
+        ));
+
+        //Arretes : toutes les paires de sommets
+        const aretes = [];
+        for (let i = 0; i < sommets.length; i++) {
+            for (let j = i + 1; j < sommets.length; j++) {
+                aretes.push(new Arete(`${sommets[i].name}${sommets[j].name}`, sommets[i], sommets[j]));
+            }
+        }
+
+        //Faces triangulaires : toutes les combinaisons de 3 sommets parmi les 5
+        const faces = [];
+        for (let i = 0; i < sommets.length; i++) {
+            for (let j = i + 1; j < sommets.length; j++) {
+                for (let k = j + 1; k < sommets.length; k++) {
+                    const a = sommets[i], b = sommets[j], c = sommets[k];
+                    faces.push(new FaceTriangle(`${a.name}${b.name}${c.name}`, a, b, c));
+                }
+            }
+        }
+
+        return new Forme(name, sommets, aretes, faces);
+    }
+
 
 
     /**
@@ -494,16 +569,27 @@ class Forme {
             )
         );
 
-        // Clone des faces
-        const newListFaces = this.faces.map(face => 
-            new FaceCarre(
-                face.name,
-                getS(face.sommet1.name),
-                getS(face.sommet2.name),
-                getS(face.sommet3.name),
-                getS(face.sommet4.name)
-            )
-        );
+        // Clone des faces (conserve FaceCarre vs FaceTriangle)
+        const newListFaces = this.faces.map(face => {
+            if (face instanceof FaceCarre) {
+                return new FaceCarre(
+                    face.name,
+                    getS(face.sommet1.name),
+                    getS(face.sommet2.name),
+                    getS(face.sommet3.name),
+                    getS(face.sommet4.name)
+                );
+            }
+
+            if (face instanceof FaceTriangle) {
+                return new FaceTriangle(
+                    face.name,
+                    getS(face.sommet1.name),
+                    getS(face.sommet2.name),
+                    getS(face.sommet3.name)
+                );
+            }
+        });
 
         // Création de la nouvelle forme
         const clone = new Forme(this.name + "_copy", newListSommets, newListAretes, newListFaces);
