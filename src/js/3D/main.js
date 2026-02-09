@@ -175,6 +175,7 @@ function addProjection2D(forme3D, axe) {
     const maProjection = new Projection2D(
       `Projection2D-${axe}`,
       clone.sommets,
+      clone.faces,
       clone.aretes,
       localCamera2D,
       axe

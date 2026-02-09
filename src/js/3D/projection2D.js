@@ -35,12 +35,15 @@ class Projection2D extends Forme {
     /**
      * Constructeur de la forme
      * @param {String} nom
-     * @param {Sommet[]} sommetsParameters 
-     * @param {Arete[]} aretesParameters
+     * @param {Sommet[]} sommets
+     * @param {FaceCarre[]} faces
+     * @param {Arete[]} aretes
+     * @param {BABYLON.Camera} camera2D
      * @param {String} axe
      */
-    constructor(nom, sommets, aretes, camera2D, axe) {
+    constructor(nom, sommets, faces, aretes, camera2D, axe) {
         super(nom, sommets, aretes);
+        this.faces = faces;
         this.camera2D = camera2D;
         this.axe = axe;
         this.tailleReference = null;
@@ -113,6 +116,7 @@ class Projection2D extends Forme {
 
         // Mise à jour des arêtes
         this.aretes.forEach(a => a.update());
+        this.faces.forEach(f => f.update?.());
     }
 }
 
