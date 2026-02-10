@@ -46,7 +46,8 @@ function initCamera3D(scene) {
   );
 
   camera3D.attachControl(canvas3D, true);
-  new BABYLON.HemisphericLight("light3D", new BABYLON.Vector3(1, 1, 0), scene);
+  new BABYLON.HemisphericLight("light3D", new BABYLON.Vector3(-0.5, -0.5, -0.5), scene);
+  new BABYLON.HemisphericLight("light3D", new BABYLON.Vector3(0.5, 0.5, 0.5), scene);
 }
 
 
@@ -63,9 +64,9 @@ function initCamera2D(scene, axe) {
   let v;
   let l;
   switch (axe) {
-    case 'x': v = new BABYLON.Vector3(-10, 0, 0); l = new BABYLON.Vector3(-10, 5, 5); break;
-    case 'y': v = new BABYLON.Vector3(0, -10, 0); l = new BABYLON.Vector3(5, -10, 5); break;
-    case 'z': v = new BABYLON.Vector3(0, 0, -10); l = new BABYLON.Vector3(5, 5, -10); break;
+    case 'x': v = new BABYLON.Vector3(-10, 0, 0); break;
+    case 'y': v = new BABYLON.Vector3(0, -10, 0); break;
+    case 'z': v = new BABYLON.Vector3(0, 0, -10); break;
   }
 
   camera2D = new BABYLON.FreeCamera(
@@ -78,11 +79,8 @@ function initCamera2D(scene, axe) {
 
   updateOrthoCamera();
 
-  new BABYLON.HemisphericLight(
-    "light2D",
-    l,
-    scene
-  );
+  new BABYLON.HemisphericLight("light2D", new BABYLON.Vector3(-0.5, -0.5, -0.5), scene);
+  new BABYLON.HemisphericLight("light2D", new BABYLON.Vector3(0.5, 0.5, 0.5), scene);
 
   return camera2D;
 

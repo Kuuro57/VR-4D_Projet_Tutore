@@ -576,7 +576,8 @@ class Forme {
                     getS(face.sommet1.name),
                     getS(face.sommet2.name),
                     getS(face.sommet3.name),
-                    getS(face.sommet4.name)
+                    getS(face.sommet4.name),
+                    face.color
                 );
             }
 
@@ -585,7 +586,8 @@ class Forme {
                     face.name,
                     getS(face.sommet1.name),
                     getS(face.sommet2.name),
-                    getS(face.sommet3.name)
+                    getS(face.sommet3.name),
+                    face.color
                 );
             }
         });
