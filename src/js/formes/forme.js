@@ -521,7 +521,6 @@ class Forme {
 
 
 
-
     /**
      * Met à jour la forme (points et arêtes) dans l'espace 3D
      */

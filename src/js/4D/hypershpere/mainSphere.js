@@ -1,7 +1,6 @@
-import { Forme } from "../../forme.js";
+import { Forme } from "../../formes/forme.js";
 import { Projection3D } from "../projection3D.js";
-import { FaceCarre } from "../../faceCarre.js";
-import { initControls, registerProjection } from "./controls4D.js";
+import { linkControls } from "../../controls.js";
 
 
 // Récupération des canvas
@@ -125,23 +124,28 @@ function updateOrthoCamera() {
  * Fonction qui crée et retourne la scène
  */
 function createScene() {
+
   scene = new BABYLON.Scene(engine3D);
   initCamera3D(scene);
-  let origin = new BABYLON.Vector4(0, 0, 0, 0);
-  let forme4D = Forme.loadHyperSphereFromCenter("Sphere", origin, 2, 8);
+
+  forme4D = Forme.loadHyperSphereFromCenter("HyperSphere", BABYLON.Vector4.Zero(), 2, 8);
+
   let clone = forme4D.getClone();
-  projection3D = new Projection3D(
-    "Projection3D",
-    clone.sommets,
-    clone.aretes,
-    [],
-    camera3D,
-    'w'
-  );
+
+  // Projection principale : on ne recentre pas pour que les translations soient visibles
+  projection3D = new Projection3D("Projection3D-Main", clone.sommets, clone.aretes, clone.faces, camera3D, 'w', false);
+
+  // lien parent
   projection3D.formeParente = forme4D;
-  forme4D.projection3D = [projection3D];
+
+  // build + première mise à jour
   projection3D.build(scene);
   projection3D.update();
+
+  projections.push(projection3D);
+
+  linkControls(forme4D);
+
 }
 
 
@@ -212,10 +216,10 @@ function addProjection3D(forme4D, axe) {
 
 // Création de la scène
 createScene();
-initControls({ forme4D, projectionPrincipale: projection3D, camera3D, scene3D: scene });
 
 // Boucle de rendu 3D
 engine3D.runRenderLoop(() => {
+  projection3D.update();
   scene.render();
 });
 
