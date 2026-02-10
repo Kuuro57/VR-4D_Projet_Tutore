@@ -1,4 +1,5 @@
 import { Sommet } from "./sommet.js";
+import { getFaceColor } from "./colors.js";
 
 /**
  * Classe qui représente une face triangulaire d'une forme géométrique 3D
@@ -48,11 +49,12 @@ class FaceTriangle {
      * @param {Sommet} s2 Deuxième point de la face triangulaire
      * @param {Sommet} s3 Troisième point de la face triangulaire
      */
-    constructor(n, s1, s2, s3) {
+    constructor(n, s1, s2, s3, color = null) {
         this.name = n;
         this.sommet1 = s1;
         this.sommet2 = s2;
         this.sommet3 = s3;
+        this.color = color || getFaceColor(n);
     }
 
     /**
@@ -65,7 +67,16 @@ class FaceTriangle {
         const mesh = new BABYLON.Mesh(this.name, scene);
 
         const mat = new BABYLON.StandardMaterial(`${this.name}_mat`, scene);
-        mat.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+        const defaultColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+        const c = this.color || defaultColor;
+        if (c instanceof BABYLON.Color3) {
+            mat.diffuseColor = c;
+        } else if (Array.isArray(c) && c.length >= 3) {
+            mat.diffuseColor = new BABYLON.Color3(c[0], c[1], c[2]);
+        } else {
+            mat.diffuseColor = defaultColor;
+        }
+        mat.specularColor = new BABYLON.Color3(0, 0, 0);
         mat.alpha = 0.5;
         mat.backFaceCulling = false;
         mesh.material = mat;

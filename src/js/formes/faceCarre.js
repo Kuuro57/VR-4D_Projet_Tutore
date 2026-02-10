@@ -1,4 +1,5 @@
 import { Sommet } from "./sommet.js";
+import { getFaceColor } from "./colors.js";
 
 /**
  * Classe qui représente une face carrée d'une forme géométrique 3D
@@ -57,12 +58,14 @@ class FaceCarre {
      * @param {Sommet} s3 Sommet qui représente le troisième point de la face carrée
      * @param {Sommet} s4 Sommet qui représente le quatrième point de la face carrée
      */
-    constructor(n, s1, s2, s3, s4) {
+    constructor(n, s1, s2, s3, s4, color = null) {
         this.name = n;
         this.sommet1 = s1;
         this.sommet2 = s2;
         this.sommet3 = s3;
         this.sommet4 = s4;
+        // couleur sous forme [r,g,b] entre 0 et 1
+        this.color = color || getFaceColor(n);
     }
 
 
@@ -79,9 +82,19 @@ class FaceCarre {
         const mesh = new BABYLON.Mesh(this.name, scene);
 
         const mat = new BABYLON.StandardMaterial(`${this.name}_mat`, scene);
-        mat.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+        const defaultColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+        const c = this.color || defaultColor;
+        // test pour que chaque faces ait une couleur
+        if (c instanceof BABYLON.Color3) {
+            mat.diffuseColor = c;
+        } else if (Array.isArray(c) && c.length >= 3) {
+            mat.diffuseColor = new BABYLON.Color3(c[0], c[1], c[2]);
+        } else {
+            mat.diffuseColor = defaultColor;
+        }
+        mat.specularColor = new BABYLON.Color3(0, 0, 0);
         mat.alpha = 0.5;
-        mat.backFaceCulling = false; 
+        mat.backFaceCulling = false;
         mesh.material = mat;
 
         this.mesh = mesh;
