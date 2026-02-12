@@ -38,6 +38,10 @@ class Projection3D extends Forme {
         this.camera3D = camera3D;
         this.axe = axe;
         this.recentre = recentre;
+
+        this.focal = 1.0;
+        this.camPadding = 1; // marge de sécurité
+        this.camPos = 2.0;     // Position de la caméra sur l'axe de profondeur choisi
     }
 
 
@@ -46,15 +50,36 @@ class Projection3D extends Forme {
      * Méthode qui met à jour la projection 3D en fonction de la forme 4D parente
      */
     update() {
-        const focal = 1.0;
-
-        // Position de la caméra sur l'axe de profondeur choisi
-        const camPos = 2.0;
 
         // helper pour retrouver les sommets par leur nom
         const getS = (name) => this.sommets.find(s => s.name === name);
 
         const centre4D = this.recentre ? this.formeParente.getVectorCenter() : null;
+
+        // --- 1) Calcul de la profondeur max pour reculer la caméra si besoin ---
+        let maxDepth = -Infinity;
+
+        this.formeParente.sommets.forEach(s4 => {
+            const x = s4.vector.x - (centre4D?.x ?? 0);
+            const y = s4.vector.y - (centre4D?.y ?? 0);
+            const z = s4.vector.z - (centre4D?.z ?? 0);
+            const w = s4.vector.w - (centre4D?.w ?? 0);
+
+            let depth;
+            switch (this.axe) {
+                case 'x': depth = x; break;
+                case 'y': depth = y; break;
+                case 'z': depth = z; break;
+                case 'w':
+                default:  depth = w; break;
+            }
+
+            if (depth > maxDepth) maxDepth = depth;
+        });
+
+        const neededCamPos = maxDepth + this.camPadding;
+        if (this.camPos < neededCamPos) this.camPos = neededCamPos;
+
 
         this.formeParente.sommets.forEach(s4 => {
             // Coordonnées 4D (centrées si demandé)
@@ -86,14 +111,9 @@ class Projection3D extends Forme {
             }
 
             // Projection perspective le long de l'axe choisi
-            let denom = (camPos - depth);
-            if (0 < denom && denom < 1e-6) {
-                denom = 1e-6;
-            } else if(-1e-6< denom && denom <0) {
-                denom = -1e-6;
-            }
+            const denom = (this.camPos - depth);
+            const scale = this.focal / denom;
 
-            const scale = focal / denom;
 
             const s3 = getS(s4.name);
             s3.vector.x = a * scale;
