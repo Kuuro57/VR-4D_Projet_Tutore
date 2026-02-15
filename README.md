@@ -29,7 +29,7 @@ KHODJAOUI Elias
 
 - Affichage des faces *(uniquement pour l'hypercube)*
 
-- Génération et affichage d'une hypershpère
+- Génération et affichage d'une hypersphère
 
 
 ## Itération 3 : 
