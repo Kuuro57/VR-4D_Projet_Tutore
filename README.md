@@ -30,3 +30,17 @@ KHODJAOUI Elias
 - Affichage des faces *(uniquement pour l'hypercube)*
 
 - Génération et affichage d'une hypershpère
+
+
+## Itération 3 : 
+
+
+- Génération et affichage d'un pentachore **[faces/arêtes/sommets]**
+
+- Modification interface *(Boutons du clavier pour contrôler la figure)*
+
+- Création d'une scène VR avec Babylon
+
+- Affichage d'un cube en VR
+
+- Coloration des faces pour meilleure visibilité
