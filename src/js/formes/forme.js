@@ -610,6 +610,20 @@ class Forme {
 
 
 
+    /**
+     * Méthode qui réinitialise la forme à sa position initiale
+     */
+    reset() {
+        this.sommets.forEach(sommet => {
+            sommet.vector = sommet.initialVector.clone();
+        });
+
+        // Mise à jour de la forme et de ses projections
+        this.update();
+    }
+
+
+
 
     /**
      * Méthode qui supprime la forme

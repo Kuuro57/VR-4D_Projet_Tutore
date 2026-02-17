@@ -111,6 +111,11 @@ function linkControls (forme) {
                 wireIsVisible = !wireIsVisible;
                 forme.toggleWireframe(wireIsVisible);
                 break;
+                
+            // Reset form to initial position
+            case 'r':
+                forme.reset();
+                break;
         };
         
     });

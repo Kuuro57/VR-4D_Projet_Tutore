@@ -31,6 +31,12 @@ class Sommet {
      */
     scale = 1.0;
 
+    /**
+     * @type {BABYLON.Vector}
+     * Position initiale du sommet pour la réinitialisation
+     */
+    initialVector;
+
 
     
     /**
@@ -40,6 +46,7 @@ class Sommet {
      */
     constructor(n, v) {
         this.vector = v;
+        this.initialVector = v.clone();
         this.name = n;
     }
 
