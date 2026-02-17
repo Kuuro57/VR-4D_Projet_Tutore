@@ -116,6 +116,18 @@ function linkControls (forme) {
             case 'r':
                 forme.reset();
                 break;
+
+            case 'g':
+                const blob = forme.saveToPLY();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'forme.ply';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                break;
         };
         
     });

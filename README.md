@@ -23,7 +23,7 @@ KHODJAOUI Elias
 ## Itération 2 :
 
 
-- Affichage de projections 3D d'une forme 4D *(Applatissement d'une dimension)*
+- Affichage de projections 3D d'une forme 4D *(Aplatissement d'une dimension)*
 
 - Transformation d'une forme 4D **[rotation]**
 

@@ -86,6 +86,179 @@ class Forme {
         return forme;
     }
 
+    /**
+     * 
+     * @param {Promise} file 
+     */
+    static loadFromPLY(file) {
+
+        let sommets = [];
+        let faces = [];
+        let aretes = [];
+        let nbVertex = 0;
+        let nbFace = 0;
+        let dimension = 0;
+        return file.then(response => response.text()).then(data => {
+            data = data.replace(/\r/g, ''); // Nettoie les retours chariot
+            let lines = data.split('\n');
+            let index = 1; // Commence après "ply"
+
+            if(lines[0] !== "ply") {
+                throw new Error("Le fichier n'est pas au format PLY");
+            }
+
+            while(index < lines.length) {
+                if(lines[index].startsWith("format")) {
+                    if(!lines[index].includes("ascii")) {
+                        throw new Error("Seul le format ASCII est supporté pour les fichiers PLY");
+                    }
+                }
+
+                if(lines[index].startsWith("element vertex")) {
+                    nbVertex = parseInt(lines[index].split(/\s+/)[2]);
+                    index++;
+                    while(lines[index].startsWith("property")) {
+                        index++;
+                        dimension++
+                    }
+                }
+
+                if(lines[index].startsWith("element face")) {
+                    nbFace = parseInt(lines[index].split(/\s+/)[2]);
+                }
+
+                if(lines[index].startsWith("end_header")) {
+                    index++;
+                    if(dimension==3){
+                        while(sommets.length < nbVertex) {
+                            let [x, y, z] = lines[index].trim().split(/\s+/).map(Number);
+                            sommets.push(new Sommet(`S${sommets.length}`, new BABYLON.Vector3(x, y, z)));
+                            index++;
+                        }
+                    } else if(dimension==4){
+                        while(sommets.length < nbVertex) {
+                            let [x, y, z, w] = lines[index].trim().split(/\s+/).map(Number);
+                            sommets.push(new Sommet(`S${sommets.length}`, new BABYLON.Vector4(x, y, z, w)));
+                            index++;
+                        }
+                    }
+                    while(faces.length < nbFace) {
+                        let nbSommetsFace = parseInt(lines[index].trim().split(/\s+/)[0]);
+                        let parts = lines[index].trim().split(/\s+/).slice(1, nbSommetsFace + 1).map(Number);
+                        //aretes
+                        for(let i=0; i<parts.length; i++) {
+                            let sommet1 = sommets[parts[i]];
+                            let sommet2;
+                            if(i==parts.length-1) {
+                                sommet2 = sommets[parts[0]];
+                            } else {
+                                sommet2 = sommets[parts[i+1]];
+                            }
+                            let arete = new Arete(`A${sommet1.name}${sommet2.name}`, sommet1, sommet2);
+                            if(!aretes.find(a=>a.name === `A${sommet1.name}${sommet2.name}` || a.name === `A${sommet2.name}${sommet1.name}`)) {
+                                aretes.push(arete);
+                            }
+                        }
+                        //faces
+                        if(nbSommetsFace == 3) {
+                            let face = new FaceTriangle(`F${faces.length}`, sommets[parts[0]], sommets[parts[1]], sommets[parts[2]]);
+                            faces.push(face);
+                        } else if(nbSommetsFace == 4) {
+                            let face = new FaceCarre(`F${faces.length}`, sommets[parts[0]], sommets[parts[1]], sommets[parts[2]], sommets[parts[3]]);
+                            faces.push(face);
+                        }
+                        index++;
+                    }
+                }
+
+                index++;
+                
+            }
+
+            return new Forme("FormeFromPLY", sommets, aretes, faces);
+        });
+    }
+
+    saveToPLY() {
+        // Détermine si la forme est en 3D ou 4D (selon le type de vecteur du 1er sommet)
+        const is4D =
+            this.sommets &&
+            this.sommets.length > 0 &&
+            this.sommets[0].vector &&
+            typeof this.sommets[0].vector.w === "number";
+
+        const dimension = is4D ? 4 : 3;
+
+        // --- Header ---
+        let out = "";
+        out += "ply\n";
+        out += "format ascii 1.0\n";
+        out += `comment ${this.name || "shape"} vertices in ${dimension}D: ${dimension === 4 ? "x y z w" : "x y z"}\n`;
+        out += `element vertex ${this.sommets.length}\n`;
+        out += "property float x\n";
+        out += "property float y\n";
+        out += "property float z\n";
+        if (dimension === 4) out += "property float w\n";
+        out += `element face ${this.faces.length}\n`;
+        out += "property list uchar int vertex_indices\n";
+        out += "end_header\n";
+
+        // --- Vertices ---
+        // On force un ordre stable: l'ordre du tableau this.sommets
+        // Format: x y z [w]
+        for (let i = 0; i < this.sommets.length; i++) {
+            const v = this.sommets[i].vector;
+            if (dimension === 4) {
+            out += `${v.x} ${v.y} ${v.z} ${v.w}\n`;
+            } else {
+            out += `${v.x} ${v.y} ${v.z}\n`;
+            }
+        }
+
+        // --- Faces ---
+        // Il faut écrire les indices des sommets utilisés par chaque face.
+        // Pour ça, on crée une map Sommet -> index, basée sur la référence d'objet dans this.sommets.
+        const indexMap = new Map();
+        for (let i = 0; i < this.sommets.length; i++) {
+            indexMap.set(this.sommets[i], i);
+        }
+
+        for (let f = 0; f < this.faces.length; f++) {
+            const face = this.faces[f];
+
+            let faceSommets = null;
+
+            // Supporte FaceCarre et FaceTriangle (et toute face ayant sommet1..sommet4)
+            if (face.sommet1 && face.sommet2 && face.sommet3 && face.sommet4) {
+            faceSommets = [face.sommet1, face.sommet2, face.sommet3, face.sommet4];
+            } else if (face.sommet1 && face.sommet2 && face.sommet3) {
+            faceSommets = [face.sommet1, face.sommet2, face.sommet3];
+            } else if (Array.isArray(face.sommets) && face.sommets.length >= 3) {
+            // fallback si un jour vous avez une face générique avec .sommets
+            faceSommets = face.sommets.slice();
+            } else {
+            // Face inconnue: on la skip proprement
+            continue;
+            }
+
+            const indices = faceSommets.map((s) => {
+            const idx = indexMap.get(s);
+            if (idx === undefined) {
+                throw new Error(
+                `saveToPLY: un sommet de la face "${face.name || f}" n'existe pas dans this.sommets (clone différent ?)`
+                );
+            }
+            return idx;
+            });
+
+            out += `${indices.length} ${indices.join(" ")}\n`;
+        }
+
+        const blob = new Blob([out], { type: "text/plain" });
+        return blob;
+    }
+
+
 
 
 

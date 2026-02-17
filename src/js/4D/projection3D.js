@@ -70,7 +70,6 @@ class Projection3D extends Forme {
                 case 'x': depth = x; break;
                 case 'y': depth = y; break;
                 case 'z': depth = z; break;
-                case 'w':
                 default:  depth = w; break;
             }
 
