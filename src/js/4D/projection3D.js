@@ -32,17 +32,39 @@ class Projection3D extends Forme {
      * @param {BABYLON.Camera} camera3D
      * @param {String} axe
      */
-    constructor(nom, sommets, aretes, faces, camera3D, axe, recentre = false) {
+    constructor(nom, sommets, aretes, faces, camera3D, axe, recentre = false, initialPosition = null) {
         super(nom, sommets, aretes);
         this.faces = faces;
         this.camera3D = camera3D;
         this.axe = axe;
         this.recentre = recentre;
+        this.initialPosition = initialPosition;
 
         this.focal = 1.0;
         this.camPadding = 1; // marge de sécurité
         this.camPos = 2.0;     // Position de la caméra sur l'axe de profondeur choisi
     }
+
+
+
+
+
+    /**
+     * 
+     * @param {*} position 
+     */
+    moveCenterToInitialPosition() {
+    
+        const offset = this.initialPosition.subtract(this.getVectorCenter());
+        this.sommets.forEach(s => {
+            s.vector.x += offset.x;
+            s.vector.y += offset.y;
+            s.vector.z += offset.z;
+        });
+    
+    }
+
+
 
 
 
@@ -121,7 +143,12 @@ class Projection3D extends Forme {
             s3.update();
         });
 
-        // mise à jour des arêtes et faces
+        if (this.initialPosition) {
+            this.moveCenterToInitialPosition();
+        }
+
+        // mise à jour des sommets, arêtes et faces
+        this.sommets.forEach(s => s.update());
         this.aretes.forEach(a => a.update());
         this.faces.forEach(f => f.update?.());
     }

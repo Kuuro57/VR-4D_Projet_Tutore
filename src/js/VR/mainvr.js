@@ -3,13 +3,26 @@ import { Forme } from "../formes/forme.js";
 import { translation } from "../transformations/translations.js";
 import { rotation3D } from "../transformations/rotations.js";
 import { homothetie } from "../transformations/homothetie.js";
+import { Projection3D } from "../4D/projection3D.js";
+import { linkControls } from "../controls.js";
 
 const canvas = document.getElementById("renderCanvas3D");
 const engine = new BABYLON.Engine(canvas, true);
 
+var camera = null;
+var scene = null;
+
+
+
+
+
 function clamp(v, a, b) {
   return Math.max(a, Math.min(b, v));
 }
+
+
+
+
 
 function addVRControls(xr, scene, forme3D) {
   // Réglages (à ajuster)
@@ -136,16 +149,20 @@ function addVRControls(xr, scene, forme3D) {
   });
 }
 
+
+
+
+
 const createScene = async () => {
-  const scene = new BABYLON.Scene(engine);
+  scene = new BABYLON.Scene(engine);
 
   // Caméra desktop (avant XR)
-  const camera = new BABYLON.FreeCamera(
+  camera = new BABYLON.FreeCamera(
     "camera1",
-    new BABYLON.Vector3(0, 1.6, -3),
+    new BABYLON.Vector3(0, 1.6, 0),
     scene
   );
-  camera.setTarget(new BABYLON.Vector3(0, 1.6, 0));
+  camera.setTarget(new BABYLON.Vector3(0, 1.6, 2));
   camera.attachControl(canvas, true);
 
   // Lumière
@@ -158,11 +175,16 @@ const createScene = async () => {
 
   // Sol + axes
   const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 10, height: 10 }, scene);
-  new BABYLON.AxesViewer(scene, 1);
 
   // ✅ Votre forme
-  const forme3D = Forme.loadCubeFromCenter("Cube", new BABYLON.Vector3(0, 1.6, 1), 0.5);
-  forme3D.build(scene);
+  const forme4D = Forme.loadHyperCubeFromCenter("Cube", new BABYLON.Vector4(0, 1.6, 3, 0), 1);
+  //forme4D.build(scene);
+
+  // Ajout des projections de la forme principale
+  addProjection3D(forme4D, 'w', new BABYLON.Vector3(3, 1.6, 0), scene);
+  addProjection3D(forme4D, 'x', new BABYLON.Vector3(-3, 1.6, 0), scene);
+  addProjection3D(forme4D, 'y', new BABYLON.Vector3(0, 1.6, -3), scene);
+  addProjection3D(forme4D, 'z', new BABYLON.Vector3(0, 1.6, 3), scene);
 
   // XR
   const xr = await scene.createDefaultXRExperienceAsync({
@@ -172,10 +194,49 @@ const createScene = async () => {
   console.log("XR ready:", xr);
 
   // ✅ Contrôles VR
-  addVRControls(xr, scene, forme3D);
+  addVRControls(xr, scene, forme4D);
+  linkControls(forme4D);
 
   return scene;
 };
+
+
+
+
+/**
+ * Créé une projection orthogonale de la forme4D sur le plan défini par axis
+ * et place cette projection à la position donnée (Vector3)
+ * @param {*} forme3D 
+ * @param {*} axis 
+ * @param {*} position 
+ */
+function addProjection3D(forme4D, axis, position) {
+
+  const clone = forme4D.getClone();
+
+  const maProjection = new Projection3D(
+    `Projection3D-${axis}`,
+    clone.sommets,
+    clone.aretes,
+    clone.faces,
+    camera,
+    axis,
+    true,
+    position
+  );
+
+  console.log(maProjection.sommets);
+
+  maProjection.formeParente = forme4D;
+  forme4D.projection3D.push(maProjection);
+
+  maProjection.build(scene);
+
+}
+
+
+
+
 
 createScene().then((scene) => {
   engine.runRenderLoop(() => scene.render());
