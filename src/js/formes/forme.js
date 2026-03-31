@@ -327,13 +327,11 @@ class Forme {
      * @param {Boolean} visible 
      */
     toggleFaces(visible) {
-
         [...this.projection2D, ...this.projection3D, this].forEach(proj => {
-            proj.faces.forEach(face => {
-                if (face.mesh) face.mesh.isVisible = visible;
-            });
+            if (proj._facesMesh) 
+                proj._facesMesh.isVisible = visible; // batch
+            proj.faces.forEach(f => { if (f.mesh) f.mesh.isVisible = visible; }); // fallback
         });
-        
     }
 
 
@@ -343,13 +341,10 @@ class Forme {
      * @param {Boolean} visible 
      */
     toggleWireframe(visible) {
-
         [...this.projection2D, ...this.projection3D, this].forEach(proj => {
-            [...proj.sommets, ...proj.aretes].forEach(obj => {
-                if (obj.mesh) obj.mesh.isVisible = visible;
-            });
+            proj.sommets.forEach(s => { if (s.mesh) s.mesh.isVisible = visible; });
+            proj.aretes.forEach(a => { if (a.mesh) a.mesh.isVisible = visible; });
         });
-
     }
     
 
@@ -687,24 +682,155 @@ class Forme {
      * @param {BABYLON.Scene} scene 
      */
     build(scene) {
-        this.sommets.forEach(s => s.build(scene));
-        this.aretes.forEach(a => a.build(scene));
-        this.faces.forEach(f => f.build(scene));
+        // Changement du fonctionnement de build() pour utiliser le batching si la forme est grande
+        const useBatch = this.sommets.length > 50 || this.aretes.length > 50;
+        this._usingBatch = useBatch;
+
+        if (useBatch) {
+            this._buildBatch(scene);
+        } else {
+            this.sommets.forEach(s => s.build(scene));
+            this.aretes.forEach(a => a.build(scene));
+            this.faces.forEach(f => f.build(scene));
+        }
     }
 
+
+    /**
+     * Methode d'affichage de la forme dans la scène en utilisant le batching
+     * (sommets en instances, arêtes en lignes individuelles, faces fusionnées)
+     * @param {BABYLON.Scene} scene 
+     */
+    _buildBatch(scene) {
+        // Sommets
+        // Création des instances des sommets dans le mesh
+        if (this.sommets.length > 0) {
+            if (!scene._sharedVertexMesh) {
+                const mat = new BABYLON.StandardMaterial("_sharedVertexMat", scene);
+                mat.diffuseColor = BABYLON.Color3.Red();
+                mat.specularColor = BABYLON.Color3.Black();
+                const base = BABYLON.MeshBuilder.CreateSphere("_sharedVertex",
+                    { diameter: 0.08, segments: 4 }, scene);
+                base.material = mat;
+                base.setEnabled(false);
+                scene._sharedVertexMesh = base;
+            }
+            this.sommets.forEach(s => {
+                s.mesh = scene._sharedVertexMesh.createInstance(`vi_${s.name}`);
+                s.mesh.position.copyFrom(s.vector);
+            });
+        }
+
+        // Arêtes
+        this.aretes.forEach(a => a.build(scene));
+
+        // Faces
+        if (this.faces.length > 0) {
+            this._buildFacesMesh(scene);
+        }
+
+    }
+
+    /**
+     * Methode d'affichage des faces de la forme dans la scène en utilisant un mesh fusionné pour toutes les faces
+     * @param {BABYLON.Scene} scene 
+     */
+    _buildFacesMesh(scene) {
+        // On construit positions + indices en une seule passe
+        const positions = [];
+        const indices   = [];
+        let offset = 0;
+
+        this.faces.forEach(face => {
+            const isQuad = !!face.sommet4;
+            const verts  = isQuad
+                ? [face.sommet1, face.sommet2, face.sommet3, face.sommet4]
+                : [face.sommet1, face.sommet2, face.sommet3];
+
+            verts.forEach(s => {
+                positions.push(s.vector.x, s.vector.y, s.vector.z);
+            });
+
+            if (isQuad) {
+                indices.push(offset, offset+1, offset+2, offset, offset+2, offset+3);
+                offset += 4;
+            } else {
+                indices.push(offset, offset+1, offset+2);
+                offset += 3;
+            }
+        });
+
+        const normals = [];
+        BABYLON.VertexData.ComputeNormals(positions, indices, normals);
+
+        const vd = new BABYLON.VertexData();
+        vd.positions = positions;
+        vd.indices   = indices;
+        vd.normals   = normals;
+
+        const mat = new BABYLON.StandardMaterial(`${this.name}_facesMat`, scene);
+        mat.diffuseColor    = new BABYLON.Color3(0.6, 0.65, 0.9);
+        mat.specularColor   = BABYLON.Color3.Black();
+        mat.alpha           = 0.5;
+        mat.backFaceCulling = false;
+
+        this._facesMesh = new BABYLON.Mesh(`${this.name}_faces`, scene);
+        this._facesMesh.material = mat;
+        vd.applyToMesh(this._facesMesh, true);
+
+        this._facesPositions = new Float32Array(positions);
+        this._facesIndices   = indices;
+    }
 
 
     /**
      * Met à jour la forme (points et arêtes) dans l'espace 3D
      */
     update() {
-        this.sommets.forEach(s => s.update());
-        this.aretes.forEach(a => a.update());
-        this.faces.forEach(f => f.update());
+        if (this._usingBatch) {
+            this._updateBatch();
+        } else {
+            this.sommets.forEach(s => s.update());
+            this.aretes.forEach(a => a.update());
+            this.faces.forEach(f => f.update());
+        }
+        this.projection2D.forEach(p => p.update());
+        this.projection3D.forEach(p => p.update());
+    }
 
-        // Récursivité sur les projections
-        this.projection2D.forEach(element => { element.update(); });
-        this.projection3D.forEach(element => { element.update(); });
+    /**
+     * Methode d'update de la forme en utilisant le batching
+     */
+    _updateBatch() {
+        // Sommets
+        this.sommets.forEach(s => {
+            if (s.mesh) s.mesh.position.copyFrom(s.vector);
+        });
+
+        // Arêtes
+        this.aretes.forEach(a => a.update());
+
+        // Faces
+        if (this._facesMesh && this._facesPositions) {
+            let i = 0;
+            this.faces.forEach(face => {
+                const verts = face.sommet4
+                    ? [face.sommet1, face.sommet2, face.sommet3, face.sommet4]
+                    : [face.sommet1, face.sommet2, face.sommet3];
+                verts.forEach(s => {
+                    this._facesPositions[i++] = s.vector.x;
+                    this._facesPositions[i++] = s.vector.y;
+                    this._facesPositions[i++] = s.vector.z;
+                });
+            });
+            this._facesMesh.updateVerticesData(
+                BABYLON.VertexBuffer.PositionKind, this._facesPositions);
+            const normals = new Float32Array(this._facesPositions.length);
+            BABYLON.VertexData.ComputeNormals(
+                this._facesPositions, this._facesIndices, normals);
+            this._facesMesh.updateVerticesData(
+                BABYLON.VertexBuffer.NormalKind, normals);
+        }
     }
 
 
@@ -802,33 +928,20 @@ class Forme {
      * Méthode qui supprime la forme
      */
     delete() {
-        // Nettoyage des meshes associés aux sommets, arêtes et faces
-        if(this.sommets){
-            this.sommets.forEach(sommet => {
-                if(sommet.mesh)
-                    sommet.mesh.dispose();
-            });
+        if (this._facesMesh) this._facesMesh.dispose();
+
+        this.sommets.forEach(s => { if (s.mesh) s.mesh.dispose(); });
+        this.aretes.forEach(a => { if (a.mesh) a.mesh.dispose(); });
+
+        if (!this._usingBatch) {
+            this.faces.forEach(f => { if (f.mesh) f.mesh.dispose(); });
         }
 
-        if(this.aretes){
-        this.aretes.forEach(arete => {
-                if(arete.mesh)
-                    arete.mesh.dispose();
-            });
-        }
-
-        if(this.faces){
-            this.faces.forEach(face => {
-                if(face.mesh)
-                    face.mesh.dispose();
-            });
-        }
-
-        // Suppression récursive des projections
-        this.projection2D.forEach(element => { element.delete(); });
-        this.projection3D.forEach(element => { element.delete(); });
+        this.projection2D.forEach(p => p.delete());
+        this.projection3D.forEach(p => p.delete());
     }
 
+    
 }
 
 

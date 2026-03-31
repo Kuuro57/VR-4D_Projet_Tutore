@@ -35,8 +35,6 @@ class Arete {
      */
     radius = 0.03;
 
-
-
     /**
      * Constructeur de la classe qui initialise une arête
      * @param {String} n Nom de l'arête
@@ -49,33 +47,21 @@ class Arete {
         this.sommet2 = s2;
     }
 
-
-
     /**
      * Méthode qui construit l'arête dans la scène
      * @param {BABYLON.Scene} scene 
      */
     build(scene) {
-
-    const edgesMat = new BABYLON.StandardMaterial(`${this.name}_edgesMat`, scene);
-    edgesMat.diffuseColor = BABYLON.Color3.Blue();
-
-    const options = {
-        path: [this.sommet1.vector, this.sommet2.vector],
-        updatable: true,
-        radius: this.radius
-    };
-
-    const tube = BABYLON.MeshBuilder.CreateTube(
-        `${this.name}_tube`,
-        options,
-        scene
-    );
-
-    tube.material = edgesMat;
-    this.mesh = tube;
-}
-
+        this.mesh = BABYLON.MeshBuilder.CreateLines(
+            `${this.name}_line`,
+            {
+                points: [this.sommet1.vector.clone(), this.sommet2.vector.clone()],
+                updatable: true
+            },
+            scene
+        );
+        this.mesh.color = new BABYLON.Color3(0.1, 0.4, 0.9);
+    }
 
     /**
      * Met à jour la position de l'arête dans l'espace
@@ -83,14 +69,10 @@ class Arete {
     update() {
         if (!this.mesh) return;
 
-        const path = [this.sommet1.vector, this.sommet2.vector];
-        const scene = this.mesh.getScene();
-
-        BABYLON.MeshBuilder.CreateTube(
-            this.mesh.name,                 // important : même nom que le mesh
-            { path, instance: this.mesh, radius: this.radius },
-            scene
-        );
+        BABYLON.MeshBuilder.CreateLines(this.mesh.name, {
+            points: [this.sommet1.vector.clone(), this.sommet2.vector.clone()],
+            instance: this.mesh
+        });
     }
 }
 

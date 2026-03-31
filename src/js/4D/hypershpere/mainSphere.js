@@ -128,7 +128,7 @@ function createScene() {
   scene = new BABYLON.Scene(engine3D);
   initCamera3D(scene);
 
-  forme4D = Forme.loadHyperSphereFromCenter("HyperSphere", BABYLON.Vector4.Zero(), 2, 8);
+  forme4D = Forme.loadHyperSphereFromCenter("HyperSphere", BABYLON.Vector4.Zero(), 20, 8);
 
   let clone = forme4D.getClone();
 
