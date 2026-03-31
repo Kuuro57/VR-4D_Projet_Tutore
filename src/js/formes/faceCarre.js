@@ -96,6 +96,7 @@ class FaceCarre {
         mat.alpha = 0.5;
         mat.backFaceCulling = false;
         mesh.material = mat;
+        mesh.alwaysSelectAsActiveMesh = true;
 
         this.mesh = mesh;
 
