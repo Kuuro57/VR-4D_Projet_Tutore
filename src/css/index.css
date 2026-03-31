@@ -68,3 +68,66 @@ button:hover {
   text-align: center;
   padding: 2px;
 }
+
+#vr-controls-board {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  z-index: 12;
+  width: min(92vw, 760px);
+  max-height: 42vh;
+  overflow: auto;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(25, 25, 25, 0.88);
+  backdrop-filter: blur(2px);
+}
+
+#vr-controls-board h2 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+#vr-controls-board table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#vr-controls-board th,
+#vr-controls-board td {
+  border: 1px solid #555;
+  padding: 6px;
+  text-align: center;
+}
+
+#vr-controls-board th {
+  min-width: 95px;
+  text-align: left;
+  background: rgba(60, 60, 60, 0.6);
+  font-size: 12px;
+}
+
+#vr-controls-board td button {
+  width: 100%;
+  min-width: 54px;
+  padding: 6px;
+  font-size: 12px;
+}
+
+@media (max-width: 900px) {
+  #vr-controls-board {
+    width: calc(100vw - 20px);
+    max-height: 46vh;
+  }
+
+  #vr-controls-board th,
+  #vr-controls-board td {
+    padding: 5px;
+  }
+
+  #vr-controls-board td button {
+    font-size: 11px;
+    min-width: 46px;
+  }
+}
