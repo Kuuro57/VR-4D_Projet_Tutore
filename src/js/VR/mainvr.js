@@ -178,7 +178,6 @@ const createScene = async () => {
 
   // ✅ Votre forme
   const forme4D = Forme.loadHyperCubeFromCenter("Cube", new BABYLON.Vector4(0, 1.6, 3, 0), 1);
-  //forme4D.build(scene);
 
   // Ajout des projections de la forme principale
   addProjection3D(forme4D, 'w', new BABYLON.Vector3(3, 1.6, 0), scene);
@@ -231,6 +230,39 @@ function addProjection3D(forme4D, axis, position) {
   forme4D.projection3D.push(maProjection);
 
   maProjection.build(scene);
+
+  addTextAboveMesh(position, axis);
+
+}
+
+
+
+
+
+/**
+ * Ajoute un texte au-dessus de la projection pour indiquer l'axe de projection
+ * @param {*} position 
+ * @param {*} axis 
+ */
+function addTextAboveMesh(position, axis) {
+
+  // Support du texte
+  const plane = BABYLON.MeshBuilder.CreatePlane("textPlane", { width: 1, height: 0.5 }, scene);
+  plane.position = new BABYLON.Vector3(position.x, position.y + 1, position.z);
+  
+  plane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+
+  // Configuration du GUI
+  const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane, 1024, 512);
+  
+  // Le texte
+  const textBlock = new BABYLON.GUI.TextBlock();
+  textBlock.text = axis.toUpperCase();
+  textBlock.color = "cyan";
+  textBlock.fontSize = 200;
+  textBlock.fontWeight = "bold";
+  
+  advancedTexture.addControl(textBlock);
 
 }
 
