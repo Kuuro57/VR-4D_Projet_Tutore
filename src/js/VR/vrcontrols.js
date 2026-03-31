@@ -9,6 +9,7 @@ function clamp(v, a, b) {
 export function createControlActions(forme3D, viewState) {
   const translationStep = 0.15;
   const rotationState = { x: false, y: false, z: false };
+  let currentScale = 1.0;
 
   function tickRotations() {
     if (rotationState.x) rotation3D(forme3D, "x");
@@ -30,8 +31,9 @@ export function createControlActions(forme3D, viewState) {
     rotateY: () => { rotationState.y = !rotationState.y; },
     rotateZ: () => { rotationState.z = !rotationState.z; },
 
-    scaleUp:   () => homothetie(forme3D, 1.02),
-    scaleDown: () => homothetie(forme3D, 0.98),
+    scaleUp:   () => { homothetie(forme3D, 1.02); currentScale *= 1.02; },
+    scaleDown: () => { homothetie(forme3D, 0.98); currentScale *= 0.98; },
+    applyScale: (factor) => { homothetie(forme3D, factor); currentScale *= factor; },
 
     toggleFaces: () => {
       viewState.facesVisible = !viewState.facesVisible;
@@ -42,6 +44,11 @@ export function createControlActions(forme3D, viewState) {
       forme3D.toggleWireframe(viewState.wireVisible);
     },
     reset: () => {
+      if (currentScale !== 1.0) {
+        homothetie(forme3D, 1.0 / currentScale);
+        currentScale = 1.0;
+      }
+
       forme3D.reset();
       rotationState.x = false;
       rotationState.y = false;
@@ -94,7 +101,8 @@ export function initVRControlPanel3D(scene, actions) {
   layout.addControl(title);
 
   const holdIntervals = new Map();
-
+  const toggleVisualResets = [];
+  
   const addRepeatableButton = (parent, col, label, action) => {
     const button = BABYLON.GUI.Button.CreateSimpleButton(label, label);
     button.height       = "52px";
@@ -135,6 +143,13 @@ export function initVRControlPanel3D(scene, actions) {
       button.background = active ? "#1a6b3a" : "#2A2A2A";
     });
 
+    toggleVisualResets.push(() => {
+      if (active) {
+        active = false;
+        button.background = "#2A2A2A";
+      }
+    });
+    
     parent.addControl(button, 0, col);
   };
 
@@ -198,7 +213,10 @@ export function initVRControlPanel3D(scene, actions) {
   addRow("Affichage", [
     { text: "Faces",     action: actions.toggleFaces,     type: "simple" },
     { text: "Wireframe", action: actions.toggleWireframe, type: "simple" },
-    { text: "Reset",     action: actions.reset,           type: "simple" },
+    { text: "Reset",     action: () => {
+        actions.reset();
+        toggleVisualResets.forEach(resetUI => resetUI()); // boutons gris
+    }, type: "simple" },
   ]);
 
   return panelMesh;
