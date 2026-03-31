@@ -80,6 +80,7 @@ class Projection3D extends Forme {
 
         // --- 1) Calcul de la profondeur max pour reculer la caméra si besoin ---
         let maxDepth = -Infinity;
+        let minDepth = Infinity;
 
         this.formeParente.sommets.forEach(s4 => {
             const x = s4.vector.x - (centre4D?.x ?? 0);
@@ -96,10 +97,14 @@ class Projection3D extends Forme {
             }
 
             if (depth > maxDepth) maxDepth = depth;
+            if (depth < minDepth) minDepth = depth;
         });
 
-        const neededCamPos = maxDepth + this.camPadding;
-        if (this.camPos < neededCamPos) this.camPos = neededCamPos;
+        // Padding proportionnel à la profondeur de l'objet
+        const range = maxDepth - minDepth;
+        this.camPos = maxDepth + Math.max(range * 0.5, 1.0);
+
+        this.camPos = maxDepth + this.camPadding;
 
 
         this.formeParente.sommets.forEach(s4 => {
