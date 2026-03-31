@@ -280,8 +280,6 @@ export function addVRControls(xr, scene, forme3D, viewState, panelMesh, controlA
           for (let i = 0; i < steps; i++) rotation3D(forme3D, "x");
         }
       }
-      const trigger = right.getComponent("xr-standard-trigger");
-      if (trigger?.value > 0.2) homothetie(forme3D, 1 + trigger.value * 0.01);
     }
   });
 }
