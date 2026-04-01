@@ -1,6 +1,9 @@
 import { translation } from "../transformations/translations.js";
-import { rotation3D } from "../transformations/rotations.js";
+import { rotation3D, rotation4D } from "../transformations/rotations.js";
 import { homothetie } from "../transformations/homothetie.js";
+
+// Dimension de la forme (3D ou 4D)
+var is4D;
 
 /**
  * Restreint une valeur entre a et b.
@@ -17,13 +20,22 @@ function clamp(v, a, b) {
  * Crée les actions de manipulation applicables à une forme (translations, rotations, échelle, affichage).
  * Retourne un objet dont chaque méthode déclenche une transformation.
  * tickRotations() doit être appelée à chaque frame pour faire avancer les rotations actives.
- * @param {Forme} forme3D - La forme à manipuler
+ * @param {Forme} forme - La forme à manipuler
  * @param {{ facesVisible: boolean, wireVisible: boolean }} viewState - État d'affichage partagé
  * @returns {Object} L'objet contenant toutes les actions
  */
-export function createControlActions(forme3D, viewState) {
+export function createControlActions(forme, viewState) {
+  
+  // Détermine si la forme est en 3D ou 4D
+  if (forme.sommets[0].vector instanceof BABYLON.Vector4) { is4D = true; }
+  else { is4D = false; }
+
+  console.log(is4D);
+
   const translationStep = 0.15;
-  const rotationState = { x: false, y: false, z: false };
+  const rotation3DState = { x: false, y: false, z: false };
+  const rotation4DState = { xy: false, xz: false, xw: false, yz: false, yw: false, zw: false };
+  
   // Permet de suivre l'échelle actuelle pour pouvoir la réinitialiser correctement
   let currentScale = 1.0;
 
@@ -31,57 +43,63 @@ export function createControlActions(forme3D, viewState) {
    * Appelée à chaque frame dans la boucle de rendu. Applique rotation3D sur les axes dont le flag est true dans rotationState.
    */
   function tickRotations() {
-    if (rotationState.x) rotation3D(forme3D, "x");
-    if (rotationState.y) rotation3D(forme3D, "y");
-    if (rotationState.z) rotation3D(forme3D, "z");
+    if (rotation3DState.x) rotation3D(forme, "x");
+    if (rotation3DState.y) rotation3D(forme, "y");
+    if (rotation3DState.z) rotation3D(forme, "z");
+
+    if (rotation4DState.xy) rotation4D(forme, "xy");
+    if (rotation4DState.xz) rotation4D(forme, "xz");
+    if (rotation4DState.xw) rotation4D(forme, "xw");
+    if (rotation4DState.yz) rotation4D(forme, "yz");
+    if (rotation4DState.yw) rotation4D(forme, "yw");
+    if (rotation4DState.zw) rotation4D(forme, "zw");
   }
 
   return {
     tickRotations,
 
-    // Translations : chaque méthode applique une translation dans la direction correspondante
-    translateXPlus:  () => translation(forme3D, new BABYLON.Vector4( translationStep, 0, 0, 0)),
-    translateXMinus: () => translation(forme3D, new BABYLON.Vector4(-translationStep, 0, 0, 0)),
-    translateYPlus:  () => translation(forme3D, new BABYLON.Vector4(0,  translationStep, 0, 0)),
-    translateYMinus: () => translation(forme3D, new BABYLON.Vector4(0, -translationStep, 0, 0)),
-    translateZPlus:  () => translation(forme3D, new BABYLON.Vector4(0, 0,  translationStep, 0)),
-    translateZMinus: () => translation(forme3D, new BABYLON.Vector4(0, 0, -translationStep, 0)),
+    // Rotations 3D : chaque méthode toggle un flag dans rotation3DState qui fait tourner la forme sur l'axe correspondant dans tickRotations()
+    rotateX: () => { rotation3DState.x = !rotation3DState.x; },
+    rotateY: () => { rotation3DState.y = !rotation3DState.y; },
+    rotateZ: () => { rotation3DState.z = !rotation3DState.z; },
 
-    // Rotations 3D : chaque méthode toggle un flag dans rotationState qui fait tourner la forme sur l'axe correspondant dans tickRotations()
-    rotateX: () => { rotationState.x = !rotationState.x; },
-    rotateY: () => { rotationState.y = !rotationState.y; },
-    rotateZ: () => { rotationState.z = !rotationState.z; },
+    // Rotations 4D : chaque méthode toggle un flag dans rotation4DState qui fait tourner la forme sur le plan correspondant dans tickRotations()
+    rotateXY: () => { rotation4DState.xy = !rotation4DState.xy; },
+    rotateXZ: () => { rotation4DState.xz = !rotation4DState.xz; },
+    rotateXW: () => { rotation4DState.xw = !rotation4DState.xw; },
+    rotateYZ: () => { rotation4DState.yz = !rotation4DState.yz; },
+    rotateYW: () => { rotation4DState.yw = !rotation4DState.yw; },
+    rotateZW: () => { rotation4DState.zw = !rotation4DState.zw; },
 
     // Homothéties : scaleUp multiplie l'échelle par 1.02, scaleDown la multiplie par 0.98, applyScale la multiplie par le facteur donné
-    scaleUp:   () => { homothetie(forme3D, 1.02); currentScale *= 1.02; },
-    scaleDown: () => { homothetie(forme3D, 0.98); currentScale *= 0.98; },
-    applyScale: (factor) => { homothetie(forme3D, factor); currentScale *= factor; },
+    scaleUp:   () => { homothetie(forme, 1.02); currentScale *= 1.02; },
+    scaleDown: () => { homothetie(forme, 0.98); currentScale *= 0.98; },
+    applyScale: (factor) => { homothetie(forme, factor); currentScale *= factor; },
 
     // Affiche/masque les faces (on peut toggle)
     toggleFaces: () => {
       viewState.facesVisible = !viewState.facesVisible;
-      forme3D.toggleFaces(viewState.facesVisible);
+      forme.toggleFaces(viewState.facesVisible);
     },
     // Affiche/masque le wireframe (on peut toggle)
     toggleWireframe: () => {
       viewState.wireVisible = !viewState.wireVisible;
-      forme3D.toggleWireframe(viewState.wireVisible);
+      forme.toggleWireframe(viewState.wireVisible);
     },
     // Réinitialise la forme à son état d'origine (position, rotation, échelle) et réactive les faces et le wireframe
     reset: () => {
       if (currentScale !== 1.0) {
-        homothetie(forme3D, 1.0 / currentScale);
+        homothetie(forme, 1.0 / currentScale);
         currentScale = 1.0;
       }
 
-      forme3D.reset();
-      rotationState.x = false;
-      rotationState.y = false;
-      rotationState.z = false;
+      forme.reset();
+      Object.keys(rotation3DState).forEach(axis => rotation3DState[axis] = false);
+      Object.keys(rotation4DState).forEach(plane => rotation4DState[plane] = false);
       viewState.facesVisible = true;
       viewState.wireVisible  = true;
-      forme3D.toggleFaces(true);
-      forme3D.toggleWireframe(true);
+      forme.toggleFaces(true);
+      forme.toggleWireframe(true);
     },
   };
 }
@@ -255,11 +273,26 @@ export function initVRControlPanel3D(scene, actions) {
     layout.addControl(row);
   };
 
-  addRow("Rotation", [
-    { text: "X", action: actions.rotateX, type: "toggleDesactive" },
-    { text: "Y", action: actions.rotateY, type: "toggleDesactive" },
-    { text: "Z", action: actions.rotateZ, type: "toggleDesactive" },
-  ]);
+  if (!is4D) {
+    addRow("Rotations", [
+      { text: "X", action: actions.rotateX, type: "toggleDesactive" },
+      { text: "Y", action: actions.rotateY, type: "toggleDesactive" },
+      { text: "Z", action: actions.rotateZ, type: "toggleDesactive" },
+    ]);
+  }
+  else {
+    addRow("Rotations", [
+      { text: "XY", action: actions.rotateXY, type: "toggleDesactive" },
+      { text: "XZ", action: actions.rotateXZ, type: "toggleDesactive" },
+      { text: "XW", action: actions.rotateXW, type: "toggleDesactive" },
+    ]);
+    addRow("Rotations", [
+      { text: "YZ", action: actions.rotateYZ, type: "toggleDesactive" },
+      { text: "YW", action: actions.rotateYW, type: "toggleDesactive" },
+      { text: "ZW", action: actions.rotateZW, type: "toggleDesactive" },
+    ])
+  }
+
   addRow("Homothetie", [
     { text: "+", action: actions.scaleUp   },
     { text: "-", action: actions.scaleDown },
