@@ -74,7 +74,7 @@ export function initVRControlPanel3D(scene, actions) {
   panelMesh.setEnabled(false);
 
   const texture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(
-    panelMesh, 1200, 580, false
+    panelMesh, 1200, 400, false
   );
 
   const root = new BABYLON.GUI.Rectangle("panel-root");
@@ -126,17 +126,17 @@ export function initVRControlPanel3D(scene, actions) {
     parent.addControl(button, 0, col);
   };
 
-  const addToggleButton = (parent, col, label, action) => {
+  const addToggleButton = (parent, col, label, action, initActive) => {
     const button = BABYLON.GUI.Button.CreateSimpleButton(label, label);
     button.height       = "52px";
     button.width        = "95%";
     button.cornerRadius = 10;
     button.thickness    = 1;
-    button.background   = "#2A2A2A";
+    button.background   = initActive ? "#1a6b3a" : "#2A2A2A";
     button.color        = "white";
     button.fontSize     = 20;
 
-    let active = false;
+    let active = initActive;
     button.onPointerUpObservable.add(() => {
       action();
       active = !active;
@@ -144,10 +144,10 @@ export function initVRControlPanel3D(scene, actions) {
     });
 
     toggleVisualResets.push(() => {
-      if (active) {
-        active = false;
-        button.background = "#2A2A2A";
-      }
+      
+      active = initActive;
+      button.background = initActive ? "#1a6b3a" : "#2A2A2A";
+      
     });
     
     parent.addControl(button, 0, col);
@@ -183,39 +183,30 @@ export function initVRControlPanel3D(scene, actions) {
 
     entries.forEach((entry, i) => {
       if (!entry) return;
-      if (entry.type === "toggle")       addToggleButton(row, i + 1, entry.text, entry.action);
-      else if (entry.type === "simple")  addSimpleButton(row, i + 1, entry.text, entry.action);
-      else                               addRepeatableButton(row, i + 1, entry.text, entry.action);
+      if (entry.type === "toggleActive")           addToggleButton(row, i + 1, entry.text, entry.action, true);
+      else if (entry.type === "toggleDesactive")   addToggleButton(row, i + 1, entry.text, entry.action, false);
+      else if (entry.type === "simple")            addSimpleButton(row, i + 1, entry.text, entry.action);
+      else                                         addRepeatableButton(row, i + 1, entry.text, entry.action);
     });
 
     layout.addControl(row);
   };
 
-  addRow("Translation", [
-    { text: "X+", action: actions.translateXPlus  },
-    { text: "X-", action: actions.translateXMinus },
-    { text: "Y+", action: actions.translateYPlus  },
-    { text: "Y-", action: actions.translateYMinus },
-  ]);
-  addRow("Translation", [
-    { text: "Z+", action: actions.translateZPlus  },
-    { text: "Z-", action: actions.translateZMinus },
-  ]);
   addRow("Rotation", [
-    { text: "X", action: actions.rotateX, type: "toggle" },
-    { text: "Y", action: actions.rotateY, type: "toggle" },
-    { text: "Z", action: actions.rotateZ, type: "toggle" },
+    { text: "X", action: actions.rotateX, type: "toggleDesactive" },
+    { text: "Y", action: actions.rotateY, type: "toggleDesactive" },
+    { text: "Z", action: actions.rotateZ, type: "toggleDesactive" },
   ]);
   addRow("Homothetie", [
     { text: "+", action: actions.scaleUp   },
     { text: "-", action: actions.scaleDown },
   ]);
   addRow("Affichage", [
-    { text: "Faces",     action: actions.toggleFaces,     type: "simple" },
-    { text: "Wireframe", action: actions.toggleWireframe, type: "simple" },
+    { text: "Faces",     action: actions.toggleFaces,     type: "toggleActive" },
+    { text: "Wireframe", action: actions.toggleWireframe, type: "toggleActive" },
     { text: "Reset",     action: () => {
         actions.reset();
-        toggleVisualResets.forEach(resetUI => resetUI()); // boutons gris
+        toggleVisualResets.forEach(resetUI => resetUI());
     }, type: "simple" },
   ]);
 
