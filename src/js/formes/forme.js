@@ -643,6 +643,108 @@ class Forme {
         return new Forme(name, sommets, aretes, faces);
     }
 
+    /**
+     * Génère un amas de tesseracts à partir d'une liste de positions de cellules
+     * 
+     * @param {String} name 
+     * @param {Array<{x:Number, y:Number, z:Number, w:Number}>} cells 
+     * @param {Number} size Taille d'une cellule
+     * @returns {Forme}
+     */
+    static generateVoxel4D(name, cells, size = 1) {
+
+        const allSommets = [];
+        const allAretes = [];
+        const allFaces = [];
+
+        cells.forEach((cell, i) => {
+            const center = new BABYLON.Vector4(
+                cell.x * size,
+                cell.y * size,
+                cell.z * size,
+                cell.w * size
+            );
+
+            const cube = Forme.loadHyperCubeFromCenter(`cell_${i}`, center, size);
+
+            // Renommer pour éviter les collisions de noms
+            cube.sommets.forEach(s => { s.name = `c${i}_${s.name}`; });
+            cube.aretes.forEach(a => { a.name = `c${i}_${a.name}`; });
+            cube.faces.forEach(f => { f.name = `c${i}_${f.name}`; });
+
+            allSommets.push(...cube.sommets);
+            allAretes.push(...cube.aretes);
+            allFaces.push(...cube.faces);
+        });
+
+        return new Forme(name, allSommets, allAretes, allFaces);
+    }
+
+
+    /**
+     * Charge les positions de voxels depuis un fichier PLY
+     * Chaque vertex du PLY = une coordonnée de cellule (x, y, z, w)
+     * 
+     * @param {Promise} file fetch() du fichier PLY
+     * @param {Number} size Taille de chaque tesseract
+     * @returns {Promise<Forme>}
+     */
+    static loadVoxel4DFromPLY(file, size = 1) {
+        return file.then(response => response.text()).then(data => {
+            data = data.replace(/\r/g, '');
+            const lines = data.split('\n');
+
+            if (lines[0] !== "ply") {
+                throw new Error("Le fichier n'est pas au format PLY");
+            }
+
+            let nbVertex = 0;
+            let dimension = 0;
+            let index = 1;
+
+            // Lecture du header
+            while (index < lines.length) {
+                const line = lines[index];
+
+                if (line.startsWith("format") && !line.includes("ascii")) {
+                    throw new Error("Seul le format ASCII est supporté");
+                }
+
+                if (line.startsWith("element vertex")) {
+                    nbVertex = parseInt(line.split(/\s+/)[2]);
+                    index++;
+                    while (lines[index].startsWith("property")) {
+                        dimension++;
+                        index++;
+                    }
+                    continue;
+                }
+
+                if (line.startsWith("end_header")) {
+                    index++;
+                    break;
+                }
+
+                index++;
+            }
+
+            // Lecture des positions de cellules
+            const cells = [];
+            while (cells.length < nbVertex && index < lines.length) {
+                const parts = lines[index].trim().split(/\s+/).map(Number);
+                cells.push({
+                    x: parts[0],
+                    y: parts[1],
+                    z: parts[2],
+                    w: dimension >= 4 ? parts[3] : 0
+                });
+                index++;
+            }
+
+            return Forme.generateVoxel4D("Voxel4D", cells, size);
+        });
+    }
+
 
 
     /**
@@ -650,28 +752,34 @@ class Forme {
      * @returns Le vecteur représentant le centre de la forme
      */
     getVectorCenter() {
+        let minX = Infinity, maxX = -Infinity;
+        let minY = Infinity, maxY = -Infinity;
+        let minZ = Infinity, maxZ = -Infinity;
 
-        let sumX = 0;
-        let sumY = 0;
-        let sumZ = 0;
-
-        this.sommets.forEach(sommet => {
-            sumX += sommet.vector.x;
-            sumY += sommet.vector.y;
-            sumZ += sommet.vector.z;
+        this.sommets.forEach(s => {
+            if (s.vector.x < minX) minX = s.vector.x;
+            if (s.vector.x > maxX) maxX = s.vector.x;
+            if (s.vector.y < minY) minY = s.vector.y;
+            if (s.vector.y > maxY) maxY = s.vector.y;
+            if (s.vector.z < minZ) minZ = s.vector.z;
+            if (s.vector.z > maxZ) maxZ = s.vector.z;
         });
 
-        // Gestion de la 4D avec un Vector4
-        if(this.sommets[0].vector instanceof BABYLON.Vector4){
-            let sumW = 0;
-            this.sommets.forEach(sommet => {
-                sumW += sommet.vector.w;
+        if (this.sommets[0].vector instanceof BABYLON.Vector4) {
+            let minW = Infinity, maxW = -Infinity;
+            this.sommets.forEach(s => {
+                if (s.vector.w < minW) minW = s.vector.w;
+                if (s.vector.w > maxW) maxW = s.vector.w;
             });
-            return new BABYLON.Vector4(sumX / this.sommets.length, sumY / this.sommets.length, sumZ / this.sommets.length, sumW / this.sommets.length);
+            return new BABYLON.Vector4(
+                (minX + maxX) / 2, (minY + maxY) / 2,
+                (minZ + maxZ) / 2, (minW + maxW) / 2
+            );
         }
 
-        return new BABYLON.Vector3(sumX / this.sommets.length, sumY / this.sommets.length, sumZ / this.sommets.length);
-
+        return new BABYLON.Vector3(
+            (minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2
+        );
     }
 
 

@@ -155,7 +155,30 @@ class Projection3D extends Forme {
         // mise à jour des sommets, arêtes et faces
         this.sommets.forEach(s => s.update());
         this.aretes.forEach(a => a.update());
-        this.faces.forEach(f => f.update?.());
+
+        // Mise à jour des faces : batch ou individuel
+        if (this._facesMesh && this._facesPositions) {
+            let i = 0;
+            this.faces.forEach(face => {
+                const verts = face.sommet4
+                    ? [face.sommet1, face.sommet2, face.sommet3, face.sommet4]
+                    : [face.sommet1, face.sommet2, face.sommet3];
+                verts.forEach(s => {
+                    this._facesPositions[i++] = s.vector.x;
+                    this._facesPositions[i++] = s.vector.y;
+                    this._facesPositions[i++] = s.vector.z;
+                });
+            });
+            this._facesMesh.updateVerticesData(
+                BABYLON.VertexBuffer.PositionKind, this._facesPositions);
+            const normals = new Float32Array(this._facesPositions.length);
+            BABYLON.VertexData.ComputeNormals(
+                this._facesPositions, this._facesIndices, normals);
+            this._facesMesh.updateVerticesData(
+                BABYLON.VertexBuffer.NormalKind, normals);
+        } else {
+            this.faces.forEach(f => f.update?.());
+        }
     }
 
 

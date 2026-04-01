@@ -122,8 +122,8 @@ async function createScene() {
     scene = new BABYLON.Scene(engine3D);
     initCamera3D(scene);
 
-    let PLYfile = fetch("../data/hypercube.ply");
-    Forme.loadFromPLY(PLYfile).then((data) => {
+    let PLYfile = fetch("../data/croix4D.ply");
+    Forme.loadVoxel4DFromPLY(PLYfile).then((data) => {
       console.log(data);
       forme4D = data;
 
