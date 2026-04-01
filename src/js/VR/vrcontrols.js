@@ -2,15 +2,34 @@ import { translation } from "../transformations/translations.js";
 import { rotation3D } from "../transformations/rotations.js";
 import { homothetie } from "../transformations/homothetie.js";
 
+/**
+ * Restreint une valeur entre a et b.
+ * @param {number} v - Valeur à contraindre
+ * @param {number} a - Borne inférieure
+ * @param {number} b - Borne supérieure
+ * @returns {number}
+ */
 function clamp(v, a, b) {
   return Math.max(a, Math.min(b, v));
 }
 
+/**
+ * Crée les actions de manipulation applicables à une forme (translations, rotations, échelle, affichage).
+ * Retourne un objet dont chaque méthode déclenche une transformation.
+ * tickRotations() doit être appelée à chaque frame pour faire avancer les rotations actives.
+ * @param {Forme} forme3D - La forme à manipuler
+ * @param {{ facesVisible: boolean, wireVisible: boolean }} viewState - État d'affichage partagé
+ * @returns {Object} L'objet contenant toutes les actions
+ */
 export function createControlActions(forme3D, viewState) {
   const translationStep = 0.15;
   const rotationState = { x: false, y: false, z: false };
+  // Permet de suivre l'échelle actuelle pour pouvoir la réinitialiser correctement
   let currentScale = 1.0;
 
+  /**
+   * Appelée à chaque frame dans la boucle de rendu. Applique rotation3D sur les axes dont le flag est true dans rotationState.
+   */
   function tickRotations() {
     if (rotationState.x) rotation3D(forme3D, "x");
     if (rotationState.y) rotation3D(forme3D, "y");
@@ -20,6 +39,7 @@ export function createControlActions(forme3D, viewState) {
   return {
     tickRotations,
 
+    // Translations : chaque méthode applique une translation dans la direction correspondante
     translateXPlus:  () => translation(forme3D, new BABYLON.Vector4( translationStep, 0, 0, 0)),
     translateXMinus: () => translation(forme3D, new BABYLON.Vector4(-translationStep, 0, 0, 0)),
     translateYPlus:  () => translation(forme3D, new BABYLON.Vector4(0,  translationStep, 0, 0)),
@@ -27,22 +47,27 @@ export function createControlActions(forme3D, viewState) {
     translateZPlus:  () => translation(forme3D, new BABYLON.Vector4(0, 0,  translationStep, 0)),
     translateZMinus: () => translation(forme3D, new BABYLON.Vector4(0, 0, -translationStep, 0)),
 
+    // Rotations 3D : chaque méthode toggle un flag dans rotationState qui fait tourner la forme sur l'axe correspondant dans tickRotations()
     rotateX: () => { rotationState.x = !rotationState.x; },
     rotateY: () => { rotationState.y = !rotationState.y; },
     rotateZ: () => { rotationState.z = !rotationState.z; },
 
+    // Homothéties : scaleUp multiplie l'échelle par 1.02, scaleDown la multiplie par 0.98, applyScale la multiplie par le facteur donné
     scaleUp:   () => { homothetie(forme3D, 1.02); currentScale *= 1.02; },
     scaleDown: () => { homothetie(forme3D, 0.98); currentScale *= 0.98; },
     applyScale: (factor) => { homothetie(forme3D, factor); currentScale *= factor; },
 
+    // Affiche/masque les faces (on peut toggle)
     toggleFaces: () => {
       viewState.facesVisible = !viewState.facesVisible;
       forme3D.toggleFaces(viewState.facesVisible);
     },
+    // Affiche/masque le wireframe (on peut toggle)
     toggleWireframe: () => {
       viewState.wireVisible = !viewState.wireVisible;
       forme3D.toggleWireframe(viewState.wireVisible);
     },
+    // Réinitialise la forme à son état d'origine (position, rotation, échelle) et réactive les faces et le wireframe
     reset: () => {
       if (currentScale !== 1.0) {
         homothetie(forme3D, 1.0 / currentScale);
@@ -61,6 +86,13 @@ export function createControlActions(forme3D, viewState) {
   };
 }
 
+/**
+ * Construit le panneau de contrôle GUI 3D qui flottera devant la manette droite en VR.
+ * Le panneau est désactivé par défaut / addVRControls() l'active et le parenté à la manette.
+ * @param {BABYLON.Scene} scene - La scène Babylon
+ * @param {Object} actions - L'objet d'actions retourné par createControlActions()
+ * @returns {BABYLON.Mesh} Le mesh du panneau à passer à addVRControls()
+ */
 export function initVRControlPanel3D(scene, actions) {
   const panelMesh = BABYLON.MeshBuilder.CreatePlane(
     "vr-controls-panel",
@@ -103,6 +135,15 @@ export function initVRControlPanel3D(scene, actions) {
   const holdIntervals = new Map();
   const toggleVisualResets = [];
   
+  /**
+  * Crée un bouton qui déclenche l'action immédiatement au pointerDown,
+  * puis la répète toutes les 100 ms tant qu'il est maintenu.
+  * Utilisé pour les translations et l'échelle.
+  * @param {BABYLON.GUI.Grid} parent - Conteneur Grid auquel ajouter le bouton
+  * @param {number} col - Index de colonne dans le Grid parent
+  * @param {string} label - Texte affiché sur le bouton
+  * @param {function} action - Callback déclenché en boucle tant que le bouton est maintenu
+  */
   const addRepeatableButton = (parent, col, label, action) => {
     const button = BABYLON.GUI.Button.CreateSimpleButton(label, label);
     button.height       = "52px";
@@ -126,6 +167,15 @@ export function initVRControlPanel3D(scene, actions) {
     parent.addControl(button, 0, col);
   };
 
+  /**
+   * Crée un bouton qui change de couleur à chaque clic (vert actif / gris inactif).
+   * Son état visuel est mémorisé dans toggleVisualResets pour être remis à zéro par le bouton Reset.
+   * @param {BABYLON.GUI.Grid} parent - Conteneur Grid auquel ajouter le bouton
+   * @param {number} col - Index de colonne dans le Grid parent
+   * @param {string} label - Texte affiché sur le bouton
+   * @param {function} action - Callback déclenché au clic
+   * @param {boolean} initActive - État visuel initial (true = vert, false = gris)
+   */
   const addToggleButton = (parent, col, label, action, initActive) => {
     const button = BABYLON.GUI.Button.CreateSimpleButton(label, label);
     button.height       = "52px";
@@ -153,6 +203,13 @@ export function initVRControlPanel3D(scene, actions) {
     parent.addControl(button, 0, col);
   };
 
+  /**
+   * Crée un bouton classique à action unique au pointerUp.
+   * @param {BABYLON.GUI.Grid} parent - Conteneur Grid auquel ajouter le bouton
+   * @param {number} col - Index de colonne dans le Grid parent
+   * @param {string} label - Texte affiché sur le bouton
+   * @param {function} action - Callback déclenché au relâchement du bouton
+   */
   const addSimpleButton = (parent, col, label, action) => {
     const button = BABYLON.GUI.Button.CreateSimpleButton(label, label);
     button.height       = "52px";
@@ -166,6 +223,12 @@ export function initVRControlPanel3D(scene, actions) {
     parent.addControl(button, 0, col);
   };
 
+  /**
+  * Construit une ligne du panneau avec un label à gauche et jusqu'à 4 boutons à droite.
+  * Chaque entrée précise son type et l'action associée.
+  * @param {string} label - Texte affiché à gauche de la ligne
+  * @param {Array<{text: string, action: function, type?: string}>} entries - Boutons à créer (type : "toggleActive" | "toggleDesactive" | "simple" | undefined pour répétable)
+  */
   const addRow = (label, entries) => {
     const row = new BABYLON.GUI.Grid();
     row.height = "70px";
@@ -213,10 +276,29 @@ export function initVRControlPanel3D(scene, actions) {
   return panelMesh;
 }
 
+/**
+ * Connecte les mains aux actions de la forme et au panneau GUI.
+ * - Main gauche  :  translation XZ, boutons X/Y -> toggle faces/wireframe
+ * - Main droite  :  rotation X/Y, grip -> support du panneau GUI
+ * @param {BABYLON.WebXRDefaultExperience} xr - L'expérience XR
+ * @param {BABYLON.Scene} scene - La scène Babylon
+ * @param {Forme} forme3D - La forme à manipuler
+ * @param {{ facesVisible: boolean, wireVisible: boolean }} viewState - État d'affichage partagé
+ * @param {BABYLON.Mesh} panelMesh - Le mesh panneau retourné par initVRControlPanel3D()
+ * @param {Object} controlActions - L'objet d'actions retourné par createControlActions()
+ */
 export function addVRControls(xr, scene, forme3D, viewState, panelMesh, controlActions) {
   const moveSpeed = 0.04;
   const buttonLatch = new Map();
 
+  /**
+   * Détecte le front montant d'un bouton : retourne true seulement à la première frame où il passe à « pressé », pas tant qu'il reste enfoncé.
+   * Utilise buttonLatch (Map) pour mémoriser l'état précédent de chaque bouton.
+  * @param {number} ctrlId - Identifiant unique du contrôleur
+  * @param {number} buttonIndex - Index arbitraire identifiant le bouton sur ce contrôleur
+  * @param {boolean} isPressedNow - État actuel du bouton à cette frame
+  * @returns {boolean} true uniquement sur le front montant (première frame pressée)
+  */
   function getPressedOnce(ctrlId, buttonIndex, isPressedNow) {
     const key  = `${ctrlId}:${buttonIndex}`;
     const prev = buttonLatch.get(key) || false;
