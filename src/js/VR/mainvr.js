@@ -1,7 +1,6 @@
 import { Forme } from "../formes/forme.js";
-import { Projection3D } from "../4D/projection3D.js";
 import { linkControls } from "../controls.js";
-import { createControlActions, initVRControlPanel3D, addVRControls } from "./vrcontrols.js";
+import { initMenu } from "./vrcontrols.js";
 
 var camera = null;
 var scene = null;
@@ -26,18 +25,13 @@ const createScene = async () => {
 
   const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 10, height: 10 }, scene);
 
-  const forme4D = Forme.loadHyperCubeFromCenter("Cube", new BABYLON.Vector4(0, 1.6, 3, 0), 1);
+  const forme4D = Forme.loadHyperCubeFromCenter("HyperCube", new BABYLON.Vector4(0, 1.6, 3, 0), 1);
 
-  // Ajout des projections de la forme principale
-  addProjection3D(forme4D, 'w', new BABYLON.Vector3(3, 1.6, 0), scene);
-  addProjection3D(forme4D, 'x', new BABYLON.Vector3(-3, 1.6, 0), scene);
-  addProjection3D(forme4D, 'y', new BABYLON.Vector3(0, 1.6, -3), scene);
-  addProjection3D(forme4D, 'z', new BABYLON.Vector3(0, 1.6, 3), scene);
-
-  const viewState     = { facesVisible: true, wireVisible: true };
-  const controlActions = createControlActions(forme4D, viewState);
-  const panelMesh      = initVRControlPanel3D(scene, controlActions);
-
+  addTextAboveMesh(new BABYLON.Vector3(3, 1.6, 0), 'w');
+  addTextAboveMesh(new BABYLON.Vector3(-3, 1.6, 0), 'x');
+  addTextAboveMesh(new BABYLON.Vector3(0, 1.6, -3), 'y');
+  addTextAboveMesh(new BABYLON.Vector3(0, 1.6, 3), 'z');
+  
   const xr = await scene.createDefaultXRExperienceAsync({
     floorMeshes: [ground],
   });
@@ -46,49 +40,12 @@ const createScene = async () => {
     xr.pointerSelection.attach();
   }
 
-
   linkControls(forme4D);
-  addVRControls(xr, scene, forme4D, viewState, panelMesh, controlActions);
+
+  initMenu(xr, scene, camera, forme4D);
 
   return scene;
 };
-
-
-
-
-/**
- * Créé une projection orthogonale de la forme4D sur le plan défini par axis
- * et place cette projection à la position donnée (Vector3)
- * @param {*} forme4D
- * @param {*} axis
- * @param {*} position
- * @param {*} scene
- */
-function addProjection3D(forme4D, axis, position, scene) {
-
-  const clone = forme4D.getClone();
-
-  const maProjection = new Projection3D(
-    `Projection3D-${axis}`,
-    clone.sommets,
-    clone.aretes,
-    clone.faces,
-    camera,
-    axis,
-    true,
-    position
-  );
-
-  console.log(maProjection.sommets);
-
-  maProjection.formeParente = forme4D;
-  forme4D.projection3D.push(maProjection);
-
-  maProjection.build(scene);
-
-  addTextAboveMesh(position, axis);
-
-}
 
 
 
