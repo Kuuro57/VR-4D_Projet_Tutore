@@ -22,12 +22,6 @@ class Projection2D extends Forme {
      * Axe que l'on applatit pour projeter la forme 3D en 2D
      */
     axe;
-    
-    /**
-     * @type {Number}
-     * Taille de référence pour normaliser la projection (pour ne pas être affecté par l'homothétie)
-     */
-    tailleReference;
 
 
 
@@ -40,13 +34,15 @@ class Projection2D extends Forme {
      * @param {Arete[]} aretes
      * @param {BABYLON.Camera} camera2D
      * @param {String} axe
+     * @param {BABYLON.Vector3} initialPosition
      */
-    constructor(nom, sommets, faces, aretes, camera2D, axe) {
+    constructor(nom, sommets, faces, aretes, camera2D, axe, initialPosition = null) {
         super(nom, sommets, aretes);
         this.faces = faces;
         this.camera2D = camera2D;
         this.axe = axe;
-        this.tailleReference = null;
+        this.initialPosition = initialPosition;
+
     }
 
 
@@ -73,25 +69,12 @@ class Projection2D extends Forme {
             tailleActuelle = Math.max(tailleActuelle, dist);
         });
 
-        // Initialise la taille de référence au premier update
-        if (this.tailleReference === null) {
-            this.tailleReference = tailleActuelle;
-        }
-
-        // Calcule le facteur de normalisation pour annuler l'homothétie (protection contre division par 0)
-        const facteurNormalisation = (tailleActuelle > 0.0001) ? (this.tailleReference / tailleActuelle) : 1.0;
-
         this.formeParente.sommets.forEach(sommet => {
 
             // Calcul des nouvelles coordonnées
             let localX = sommet.vector.x - centre3D.x;
             let localY = sommet.vector.y - centre3D.y;
             let localZ = sommet.vector.z - centre3D.z;
-
-            // Normalise pour garder la même taille visuelle
-            localX *= facteurNormalisation;
-            localY *= facteurNormalisation;
-            localZ *= facteurNormalisation;
 
             const s2D = getS(sommet.name);
 
@@ -107,17 +90,37 @@ class Projection2D extends Forme {
                     break;
             }
 
-            // ignore l'homothétie
-            s2D.scale = 1.0;
-
             // Mise à jour du sommet
             s2D.update();
         });
+        
+        if (this.initialPosition) {
+            this.moveCenterToInitialPosition();
+        }
 
         // Mise à jour des arêtes
+        this.sommets.forEach(s => s.update());
         this.aretes.forEach(a => a.update());
         this.faces.forEach(f => f.update?.());
+
     }
+
+
+    /**
+     * 
+     * @param {*} position 
+     */
+    moveCenterToInitialPosition() {
+
+        const offset = this.initialPosition.subtract(this.getVectorCenter());
+        this.sommets.forEach(s => {
+            s.vector.x += offset.x;
+            s.vector.y += offset.y;
+            s.vector.z += offset.z;
+        });
+
+    }
+
 }
 
 

@@ -1,9 +1,41 @@
 import { translation } from "../transformations/translations.js";
 import { rotation3D, rotation4D } from "../transformations/rotations.js";
 import { homothetie } from "../transformations/homothetie.js";
+import { Forme } from "../formes/forme.js";
+import { Projection3D } from "../4D/projection3D.js";
+import { Projection2D } from "../3D/projection2D.js";
+
 
 // Dimension de la forme (3D ou 4D)
 var is4D;
+
+// Menu de contrôle VR (GUI 3D)
+var globalPanelMesh;
+
+// Scène (monde VR)
+var globalScene;
+
+// Liste contenant toutes les actions possibles
+export var globalActions;
+
+// Forme actuellement affichée
+var globalForme;
+
+// Expérience XR
+var globalXR;
+
+// État d'affichage partagé
+var globalViewState;
+
+// Camera principale
+var globalCamera;
+
+// Mesh de la main droite
+var globalRightMesh;
+
+
+
+
 
 /**
  * Restreint une valeur entre a et b.
@@ -16,21 +48,88 @@ function clamp(v, a, b) {
   return Math.max(a, Math.min(b, v));
 }
 
+
+
+
+
+/**
+ * Créé une projection orthogonale de la forme4D sur le plan défini par axis
+ * et place cette projection à la position donnée (Vector3)
+ * @param {*} forme3D 
+ * @param {*} axis 
+ * @param {*} position 
+ */
+function addProjection3D(forme4D, axis, position, scene) {
+
+  const clone = forme4D.getClone();
+
+  const maProjection = new Projection3D(
+    `Projection3D-${axis}`,
+    clone.sommets,
+    clone.aretes,
+    clone.faces,
+    globalCamera,
+    axis,
+    true,
+    position
+  );
+
+  maProjection.formeParente = forme4D;
+  forme4D.projection3D.push(maProjection);
+
+  maProjection.build(scene);
+  maProjection.update();
+
+}
+
+
+/**
+ * Créé une projection orthogonale de la forme3D sur le plan défini par axis
+ * et place cette projection à la position donnée (Vector3)
+ * @param {*} forme3D 
+ * @param {*} axis 
+ * @param {*} position 
+ */
+function addProjection2D(forme3D, axis, position, scene) {
+
+  const clone = forme3D.getClone();
+
+  const maProjection = new Projection2D(
+    `Projection2D-${axis}`,
+    clone.sommets,
+    clone.faces,
+    clone.aretes,
+    globalCamera,
+    axis,
+    position
+  );
+
+  maProjection.formeParente = forme3D;
+  forme3D.projection2D.push(maProjection);
+
+  maProjection.build(scene);
+  maProjection.update();
+
+  console.log(`Projection 2D ajoutée sur l'axe ${axis} :`, maProjection);
+
+}
+
+
+
+
+
 /**
  * Crée les actions de manipulation applicables à une forme (translations, rotations, échelle, affichage).
  * Retourne un objet dont chaque méthode déclenche une transformation.
  * tickRotations() doit être appelée à chaque frame pour faire avancer les rotations actives.
  * @param {Forme} forme - La forme à manipuler
- * @param {{ facesVisible: boolean, wireVisible: boolean }} viewState - État d'affichage partagé
  * @returns {Object} L'objet contenant toutes les actions
  */
-export function createControlActions(forme, viewState) {
-  
-  // Détermine si la forme est en 3D ou 4D
-  if (forme.sommets[0].vector instanceof BABYLON.Vector4) { is4D = true; }
-  else { is4D = false; }
+function createControlActions() {
 
-  console.log(is4D);
+  // Détermine si la forme est en 3D ou 4D
+  if (globalForme.sommets[0].vector instanceof BABYLON.Vector4) { is4D = true; }
+  else { is4D = false; }
 
   const translationStep = 0.15;
   const rotation3DState = { x: false, y: false, z: false };
@@ -43,16 +142,16 @@ export function createControlActions(forme, viewState) {
    * Appelée à chaque frame dans la boucle de rendu. Applique rotation3D sur les axes dont le flag est true dans rotationState.
    */
   function tickRotations() {
-    if (rotation3DState.x) rotation3D(forme, "x");
-    if (rotation3DState.y) rotation3D(forme, "y");
-    if (rotation3DState.z) rotation3D(forme, "z");
+    if (rotation3DState.x) rotation3D(globalForme, "x");
+    if (rotation3DState.y) rotation3D(globalForme, "y");
+    if (rotation3DState.z) rotation3D(globalForme, "z");
 
-    if (rotation4DState.xy) rotation4D(forme, "xy");
-    if (rotation4DState.xz) rotation4D(forme, "xz");
-    if (rotation4DState.xw) rotation4D(forme, "xw");
-    if (rotation4DState.yz) rotation4D(forme, "yz");
-    if (rotation4DState.yw) rotation4D(forme, "yw");
-    if (rotation4DState.zw) rotation4D(forme, "zw");
+    if (rotation4DState.xy) rotation4D(globalForme, "xy");
+    if (rotation4DState.xz) rotation4D(globalForme, "xz");
+    if (rotation4DState.xw) rotation4D(globalForme, "xw");
+    if (rotation4DState.yz) rotation4D(globalForme, "yz");
+    if (rotation4DState.yw) rotation4D(globalForme, "yw");
+    if (rotation4DState.zw) rotation4D(globalForme, "zw");
   }
 
   return {
@@ -71,51 +170,87 @@ export function createControlActions(forme, viewState) {
     rotateYW: () => { rotation4DState.yw = !rotation4DState.yw; },
     rotateZW: () => { rotation4DState.zw = !rotation4DState.zw; },
 
-    // Homothéties : scaleUp multiplie l'échelle par 1.02, scaleDown la multiplie par 0.98, applyScale la multiplie par le facteur donné
-    scaleUp:   () => { homothetie(forme, 1.02); currentScale *= 1.02; },
-    scaleDown: () => { homothetie(forme, 0.98); currentScale *= 0.98; },
-    applyScale: (factor) => { homothetie(forme, factor); currentScale *= factor; },
+    // Homothéties : scaleUp multiplie l'échelle par 1.02, scaleDown la multiplie par 0.98
+    scaleUp:   () => { homothetie(globalForme, 1.02); currentScale *= 1.02; },
+    scaleDown: () => { homothetie(globalForme, 0.98); currentScale *= 0.98; },
 
     // Affiche/masque les faces (on peut toggle)
     toggleFaces: () => {
-      viewState.facesVisible = !viewState.facesVisible;
-      forme.toggleFaces(viewState.facesVisible);
+      globalViewState.facesVisible = !globalViewState.facesVisible;
+      globalForme.toggleFaces(globalViewState.facesVisible);
     },
     // Affiche/masque le wireframe (on peut toggle)
     toggleWireframe: () => {
-      viewState.wireVisible = !viewState.wireVisible;
-      forme.toggleWireframe(viewState.wireVisible);
+      globalViewState.wireVisible = !globalViewState.wireVisible;
+      globalForme.toggleWireframe(globalViewState.wireVisible);
     },
     // Réinitialise la forme à son état d'origine (position, rotation, échelle) et réactive les faces et le wireframe
     reset: () => {
       if (currentScale !== 1.0) {
-        homothetie(forme, 1.0 / currentScale);
+        homothetie(globalForme, 1.0 / currentScale);
         currentScale = 1.0;
       }
 
-      forme.reset();
+      globalForme.reset();
       Object.keys(rotation3DState).forEach(axis => rotation3DState[axis] = false);
       Object.keys(rotation4DState).forEach(plane => rotation4DState[plane] = false);
-      viewState.facesVisible = true;
-      viewState.wireVisible  = true;
-      forme.toggleFaces(true);
-      forme.toggleWireframe(true);
+      globalViewState.facesVisible = true;
+      globalViewState.wireVisible  = true;
+      globalForme.toggleFaces(true);
+      globalForme.toggleWireframe(true);
+    },
+    // Change la forme active et recréé le menu
+    switchForme: (name) => {
+      
+      globalForme.delete();
+
+      var newForme;
+      switch (name) {
+        case "HyperCube": 
+          newForme = Forme.loadHyperCubeFromCenter("HyperCube", new BABYLON.Vector4(0, 0, 0, 0), 1);
+          is4D = true; 
+          break;
+        case "Cube": 
+          newForme = Forme.loadCubeFromCenter("Cube", new BABYLON.Vector3(0, 0, 0), 1); 
+          is4D = false;
+          break;
+      }
+
+      // Ajout des projections de la forme principale
+      if (is4D) {
+          addProjection3D(newForme, 'w', new BABYLON.Vector3(3, 1.6, 0), globalScene);
+          addProjection3D(newForme, 'x', new BABYLON.Vector3(-3, 1.6, 0), globalScene);
+          addProjection3D(newForme, 'y', new BABYLON.Vector3(0, 1.6, -3), globalScene);
+          addProjection3D(newForme, 'z', new BABYLON.Vector3(0, 1.6, 3), globalScene);
+      }
+      else {
+        addProjection2D(newForme, 'x', new BABYLON.Vector3(-3, 1.6, 0), globalScene);
+        addProjection2D(newForme, 'y', new BABYLON.Vector3(0, 1.6, -3), globalScene);
+        addProjection2D(newForme, 'z', new BABYLON.Vector3(0, 1.6, 3), globalScene);
+      }
+
+      globalPanelMesh.dispose();
+      initMenu(globalXR, globalScene, globalCamera, newForme, false);
+
     },
   };
 }
 
+
+
+
+
 /**
  * Construit le panneau de contrôle GUI 3D qui flottera devant la manette droite en VR.
  * Le panneau est désactivé par défaut / addVRControls() l'active et le parenté à la manette.
- * @param {BABYLON.Scene} scene - La scène Babylon
- * @param {Object} actions - L'objet d'actions retourné par createControlActions()
  * @returns {BABYLON.Mesh} Le mesh du panneau à passer à addVRControls()
  */
-export function initVRControlPanel3D(scene, actions) {
-  const panelMesh = BABYLON.MeshBuilder.CreatePlane(
+function initVRControlPanel3D() {
+
+  var panelMesh = BABYLON.MeshBuilder.CreatePlane(
     "vr-controls-panel",
     { width: 0.4, height: 0.2625, sideOrientation: BABYLON.Mesh.FRONTSIDE },
-    scene
+    globalScene
   );
 
   panelMesh.billboardMode  = BABYLON.Mesh.BILLBOARDMODE_ALL;
@@ -124,7 +259,7 @@ export function initVRControlPanel3D(scene, actions) {
   panelMesh.setEnabled(false);
 
   const texture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(
-    panelMesh, 1200, 400, false
+    panelMesh, 1200, 475, false
   );
 
   const root = new BABYLON.GUI.Rectangle("panel-root");
@@ -275,52 +410,54 @@ export function initVRControlPanel3D(scene, actions) {
 
   if (!is4D) {
     addRow("Rotations", [
-      { text: "X", action: actions.rotateX, type: "toggleDesactive" },
-      { text: "Y", action: actions.rotateY, type: "toggleDesactive" },
-      { text: "Z", action: actions.rotateZ, type: "toggleDesactive" },
+      { text: "X", action: globalActions.rotateX, type: "toggleDesactive" },
+      { text: "Y", action: globalActions.rotateY, type: "toggleDesactive" },
+      { text: "Z", action: globalActions.rotateZ, type: "toggleDesactive" },
     ]);
   }
   else {
     addRow("Rotations", [
-      { text: "XY", action: actions.rotateXY, type: "toggleDesactive" },
-      { text: "XZ", action: actions.rotateXZ, type: "toggleDesactive" },
-      { text: "XW", action: actions.rotateXW, type: "toggleDesactive" },
+      { text: "XY", action: globalActions.rotateXY, type: "toggleDesactive" },
+      { text: "XZ", action: globalActions.rotateXZ, type: "toggleDesactive" },
+      { text: "XW", action: globalActions.rotateXW, type: "toggleDesactive" },
     ]);
     addRow("Rotations", [
-      { text: "YZ", action: actions.rotateYZ, type: "toggleDesactive" },
-      { text: "YW", action: actions.rotateYW, type: "toggleDesactive" },
-      { text: "ZW", action: actions.rotateZW, type: "toggleDesactive" },
+      { text: "YZ", action: globalActions.rotateYZ, type: "toggleDesactive" },
+      { text: "YW", action: globalActions.rotateYW, type: "toggleDesactive" },
+      { text: "ZW", action: globalActions.rotateZW, type: "toggleDesactive" },
     ])
   }
 
   addRow("Homothetie", [
-    { text: "+", action: actions.scaleUp   },
-    { text: "-", action: actions.scaleDown },
+    { text: "+", action: globalActions.scaleUp   },
+    { text: "-", action: globalActions.scaleDown },
   ]);
   addRow("Affichage", [
-    { text: "Faces",     action: actions.toggleFaces,     type: "toggleActive" },
-    { text: "Wireframe", action: actions.toggleWireframe, type: "toggleActive" },
+    { text: "Faces",     action: globalActions.toggleFaces,     type: "toggleActive" },
+    { text: "Wireframe", action: globalActions.toggleWireframe, type: "toggleActive" },
     { text: "Reset",     action: () => {
-        actions.reset();
+        globalActions.reset();
         toggleVisualResets.forEach(resetUI => resetUI());
     }, type: "simple" },
+  ]);
+  addRow("Formes", [
+    { text: "Cube",      action: () => { globalActions.switchForme("Cube"); },     type: "simple" },
+    { text: "HyperCube", action: () => { globalActions.switchForme("HyperCube"); },     type: "simple" },
   ]);
 
   return panelMesh;
 }
 
+
+
+
+
 /**
  * Connecte les mains aux actions de la forme et au panneau GUI.
  * - Main gauche  :  translation XZ, boutons X/Y -> toggle faces/wireframe
  * - Main droite  :  rotation X/Y, grip -> support du panneau GUI
- * @param {BABYLON.WebXRDefaultExperience} xr - L'expérience XR
- * @param {BABYLON.Scene} scene - La scène Babylon
- * @param {Forme} forme3D - La forme à manipuler
- * @param {{ facesVisible: boolean, wireVisible: boolean }} viewState - État d'affichage partagé
- * @param {BABYLON.Mesh} panelMesh - Le mesh panneau retourné par initVRControlPanel3D()
- * @param {Object} controlActions - L'objet d'actions retourné par createControlActions()
  */
-export function addVRControls(xr, scene, forme3D, viewState, panelMesh, controlActions) {
+function addVRControls() {
   const moveSpeed = 0.04;
   const buttonLatch = new Map();
 
@@ -341,7 +478,7 @@ export function addVRControls(xr, scene, forme3D, viewState, panelMesh, controlA
 
   const controllers = { left: null, right: null };
 
-  xr.input.onControllerAddedObservable.add((xrController) => {
+  globalXR.input.onControllerAddedObservable.add((xrController) => {
     xrController.onMotionControllerInitObservable.add((motionController) => {
       const handness = motionController.handedness;
 
@@ -352,21 +489,17 @@ export function addVRControls(xr, scene, forme3D, viewState, panelMesh, controlA
       if (handness === "right") {
         controllers.right = motionController;
 
-        const rightMesh = xrController.gripTransform
+        globalRightMesh = xrController.gripTransform
                        ?? xrController.grip
                        ?? xrController.pointer;
 
-        panelMesh.parent   = rightMesh;
-        panelMesh.position = new BABYLON.Vector3(0, 0.0, -0.07);
-        panelMesh.rotation = new BABYLON.Vector3(0, 0, 0);
-        panelMesh.setEnabled(true);
+        attachMenuToHand();
       }
     });
   });
 
-  scene.onBeforeRenderObservable.add(() => {
-    forme3D.update();
-    controlActions.tickRotations();
+  globalScene.onBeforeRenderObservable.add(() => {
+    globalActions.tickRotations();
 
     const left = controllers.left;
     if (left) {
@@ -374,36 +507,64 @@ export function addVRControls(xr, scene, forme3D, viewState, panelMesh, controlA
       if (stick?.axes) {
         const x = clamp(stick.axes.x, -1, 1);
         const y = clamp(stick.axes.y, -1, 1);
-        if (Math.abs(x) > 0.15) translation(forme3D, new BABYLON.Vector4( x * moveSpeed, 0, 0, 0));
-        if (Math.abs(y) > 0.15) translation(forme3D, new BABYLON.Vector4(0, 0, -y * moveSpeed, 0));
+        if (Math.abs(x) > 0.15) translation(globalForme, new BABYLON.Vector4( x * moveSpeed, 0, 0, 0));
+        if (Math.abs(y) > 0.15) translation(globalForme, new BABYLON.Vector4(0, 0, -y * moveSpeed, 0));
       }
       const a = left.getComponent("x-button") || left.getComponent("a-button");
       const b = left.getComponent("y-button") || left.getComponent("b-button");
       if (a && getPressedOnce(left.uniqueId, 100, !!a.pressed)) {
-        viewState.facesVisible = !viewState.facesVisible;
-        forme3D.toggleFaces(viewState.facesVisible);
+        globalViewState.facesVisible = !globalViewState.facesVisible;
+        globalForme.toggleFaces(globalViewState.facesVisible);
       }
       if (b && getPressedOnce(left.uniqueId, 101, !!b.pressed)) {
-        viewState.wireVisible = !viewState.wireVisible;
-        forme3D.toggleWireframe(viewState.wireVisible);
-      }
-    }
-
-    const right = controllers.right;
-    if (right) {
-      const stick = right.getComponent("xr-standard-thumbstick");
-      if (stick?.axes) {
-        const x = clamp(stick.axes.x, -1, 1);
-        const y = clamp(stick.axes.y, -1, 1);
-        if (Math.abs(x) > 0.15) {
-          const steps = Math.ceil(Math.abs(x) * 3);
-          for (let i = 0; i < steps; i++) rotation3D(forme3D, "y");
-        }
-        if (Math.abs(y) > 0.15) {
-          const steps = Math.ceil(Math.abs(y) * 3);
-          for (let i = 0; i < steps; i++) rotation3D(forme3D, "x");
-        }
+        globalViewState.wireVisible = !globalViewState.wireVisible;
+        globalForme.toggleWireframe(globalViewState.wireVisible);
       }
     }
   });
+}
+
+
+
+
+
+/**
+ * Attache le menu de contrôle à la main droite
+ */
+function attachMenuToHand() {
+
+  globalPanelMesh.parent   = globalRightMesh;
+  globalPanelMesh.position = new BABYLON.Vector3(0, 0.0, -0.11);
+  globalPanelMesh.rotation = new BABYLON.Vector3(0, 0, 0);
+  globalPanelMesh.setEnabled(true);
+
+}
+
+
+
+
+
+/**
+ * Initialise le menu VR
+ * @param {*} xr 
+ * @param {*} scene 
+ * @param {*} forme 
+ */
+export function initMenu(xr, scene, camera, forme, isFirstInit = true) {
+
+  globalForme = forme;
+  globalXR = xr;
+  globalScene = scene;
+  globalCamera = camera;
+  globalViewState = { facesVisible: true, wireVisible: true };
+
+  globalActions = createControlActions();
+  globalPanelMesh = initVRControlPanel3D();
+
+  if (isFirstInit) { addVRControls(); }
+  else { 
+    globalPanelMesh.setEnabled(true);
+    attachMenuToHand(); 
+  }
+
 }
