@@ -14,10 +14,10 @@ const createScene = async () => {
   // Caméra desktop (avant XR)
   camera = new BABYLON.FreeCamera(
     "camera1",
-    new BABYLON.Vector3(0, 1.6, 0),
+    new BABYLON.Vector3(-5, 1.6, 0),
     scene
   );
-  camera.setTarget(new BABYLON.Vector3(0, 1.6, 2));
+  camera.setTarget(new BABYLON.Vector3(0, 1.6, 0));
   camera.attachControl(canvas, true);
 
   const light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
@@ -27,10 +27,10 @@ const createScene = async () => {
 
   const forme4D = Forme.loadHyperCubeFromCenter("HyperCube", new BABYLON.Vector4(0, 1.6, 3, 0), 1);
 
-  addTextAboveMesh(new BABYLON.Vector3(3, 1.6, 0), 'w');
-  addTextAboveMesh(new BABYLON.Vector3(-3, 1.6, 0), 'x');
-  addTextAboveMesh(new BABYLON.Vector3(0, 1.6, -3), 'y');
-  addTextAboveMesh(new BABYLON.Vector3(0, 1.6, 3), 'z');
+  addTextAboveMesh(new BABYLON.Vector3(0, 1.6, 5), 'x');
+  addTextAboveMesh(new BABYLON.Vector3(0, 1.6, 5 - (10 / 3)), 'y');
+  addTextAboveMesh(new BABYLON.Vector3(0, 1.6, -5 + (10 / 3)), 'z');
+  addTextAboveMesh(new BABYLON.Vector3(0, 1.6, -5), 'w');
   
   const xr = await scene.createDefaultXRExperienceAsync({
     floorMeshes: [ground],
