@@ -313,6 +313,8 @@ export function initVRControlPanel3D(scene, actions) {
  * Connecte les mains aux actions de la forme et au panneau GUI.
  * - Main gauche  :  translation XZ, boutons X/Y -> toggle faces/wireframe
  * - Main droite  :  rotation X/Y, grip -> support du panneau GUI
+ * La main droite ne peut PAS interagir avec le panneau de contrôle.
+ * Ceci est obtenu via deux mécanismes complémentaires :
  * @param {BABYLON.WebXRDefaultExperience} xr - L'expérience XR
  * @param {BABYLON.Scene} scene - La scène Babylon
  * @param {Forme} forme3D - La forme à manipuler
@@ -324,6 +326,11 @@ export function addVRControls(xr, scene, forme3D, viewState, panelMesh, controlA
   const moveSpeed = 0.04;
   const buttonLatch = new Map();
 
+
+  // Référence à l'inputSource WebXR de la main droite.
+  // Alimentée dès que le contrôleur droit est initialisé.
+  // Utilisée dans meshSelectionPredicate pour identifier quel contrôleur effectue le pick.
+  let rightInputSource = null;
   /**
    * Détecte le front montant d'un bouton : retourne true seulement à la première frame où il passe à « pressé », pas tant qu'il reste enfoncé.
    * Utilise buttonLatch (Map) pour mémoriser l'état précédent de chaque bouton.
@@ -341,6 +348,27 @@ export function addVRControls(xr, scene, forme3D, viewState, panelMesh, controlA
 
   const controllers = { left: null, right: null };
 
+  if (xr.pointerSelection) {
+    xr.pointerSelection.meshSelectionPredicate = (mesh) => {
+      // Bloque la main droite sur le panneau
+      if (mesh.metadata?.vrControlPanel) {
+        // Récupère l'inputSource actif au moment du pick
+        const activeSource = xr.pointerSelection._currentController?.inputSource
+                          ?? xr.pointerSelection._controllers?.[xr.pointerSelection._controllers?.length - 1]?.xrController?.inputSource;
+        // Si on a identifié la main droite, on compare
+        if (rightInputSource && activeSource === rightInputSource) {
+          return false;
+        }
+        // Fallback : si l'inputSource actif a directement handedness "right"
+        if (activeSource?.handedness === "right") {
+          return false;
+        }
+      }
+      // Comportement par défaut de Babylon
+      return mesh.isEnabled() && mesh.isVisible && mesh.isPickable;
+    };
+  }
+
   xr.input.onControllerAddedObservable.add((xrController) => {
     xrController.onMotionControllerInitObservable.add((motionController) => {
       const handness = motionController.handedness;
@@ -351,7 +379,8 @@ export function addVRControls(xr, scene, forme3D, viewState, panelMesh, controlA
 
       if (handness === "right") {
         controllers.right = motionController;
-
+        // Mémorise l'inputSource WebXR de la main droite pour le predicate ci-dessus
+        rightInputSource = xrController.inputSource;
         const rightMesh = xrController.gripTransform
                        ?? xrController.grip
                        ?? xrController.pointer;
@@ -360,6 +389,13 @@ export function addVRControls(xr, scene, forme3D, viewState, panelMesh, controlA
         panelMesh.position = new BABYLON.Vector3(0, 0.0, -0.07);
         panelMesh.rotation = new BABYLON.Vector3(0, 0, 0);
         panelMesh.setEnabled(true);
+        panelMesh.isNearPickable = false;
+      }
+    });
+    // Nettoie la référence si le contrôleur droit est déconnecté (ex : batterie)
+    xrController.onDisposeObservable.add(() => {
+      if (xrController.inputSource === rightInputSource) {
+        rightInputSource = null;
       }
     });
   });

@@ -59,11 +59,12 @@ const createScene = async () => {
 /**
  * Créé une projection orthogonale de la forme4D sur le plan défini par axis
  * et place cette projection à la position donnée (Vector3)
- * @param {*} forme3D 
- * @param {*} axis 
- * @param {*} position 
+ * @param {*} forme4D
+ * @param {*} axis
+ * @param {*} position
+ * @param {*} scene
  */
-function addProjection3D(forme4D, axis, position) {
+function addProjection3D(forme4D, axis, position, scene) {
 
   const clone = forme4D.getClone();
 
