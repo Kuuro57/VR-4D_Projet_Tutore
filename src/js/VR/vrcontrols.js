@@ -33,6 +33,10 @@ var globalCamera;
 // Mesh de la main droite
 var globalRightMesh;
 
+// Liste des états des rotations (active ou inactive)
+var globalRotation3DState;
+var globalRotation4DState;
+
 
 
 
@@ -132,9 +136,9 @@ function createControlActions() {
   else { is4D = false; }
 
   const translationStep = 0.15;
-  const rotation3DState = { x: false, y: false, z: false };
-  const rotation4DState = { xy: false, xz: false, xw: false, yz: false, yw: false, zw: false };
-  
+  globalRotation3DState = { x: false, y: false, z: false };
+  globalRotation4DState = { xy: false, xz: false, xw: false, yz: false, yw: false, zw: false };
+
   // Permet de suivre l'échelle actuelle pour pouvoir la réinitialiser correctement
   let currentScale = 1.0;
 
@@ -142,33 +146,33 @@ function createControlActions() {
    * Appelée à chaque frame dans la boucle de rendu. Applique rotation3D sur les axes dont le flag est true dans rotationState.
    */
   function tickRotations() {
-    if (rotation3DState.x) rotation3D(globalForme, "x");
-    if (rotation3DState.y) rotation3D(globalForme, "y");
-    if (rotation3DState.z) rotation3D(globalForme, "z");
+    if (globalRotation3DState.x) rotation3D(globalForme, "x");
+    if (globalRotation3DState.y) rotation3D(globalForme, "y");
+    if (globalRotation3DState.z) rotation3D(globalForme, "z");
 
-    if (rotation4DState.xy) rotation4D(globalForme, "xy");
-    if (rotation4DState.xz) rotation4D(globalForme, "xz");
-    if (rotation4DState.xw) rotation4D(globalForme, "xw");
-    if (rotation4DState.yz) rotation4D(globalForme, "yz");
-    if (rotation4DState.yw) rotation4D(globalForme, "yw");
-    if (rotation4DState.zw) rotation4D(globalForme, "zw");
+    if (globalRotation4DState.xy) rotation4D(globalForme, "xy");
+    if (globalRotation4DState.xz) rotation4D(globalForme, "xz");
+    if (globalRotation4DState.xw) rotation4D(globalForme, "xw");
+    if (globalRotation4DState.yz) rotation4D(globalForme, "yz");
+    if (globalRotation4DState.yw) rotation4D(globalForme, "yw");
+    if (globalRotation4DState.zw) rotation4D(globalForme, "zw");
   }
 
   return {
     tickRotations,
 
     // Rotations 3D : chaque méthode toggle un flag dans rotation3DState qui fait tourner la forme sur l'axe correspondant dans tickRotations()
-    rotateX: () => { rotation3DState.x = !rotation3DState.x; },
-    rotateY: () => { rotation3DState.y = !rotation3DState.y; },
-    rotateZ: () => { rotation3DState.z = !rotation3DState.z; },
+    rotateX: () => { globalRotation3DState.x = !globalRotation3DState.x; },
+    rotateY: () => { globalRotation3DState.y = !globalRotation3DState.y; },
+    rotateZ: () => { globalRotation3DState.z = !globalRotation3DState.z; },
 
     // Rotations 4D : chaque méthode toggle un flag dans rotation4DState qui fait tourner la forme sur le plan correspondant dans tickRotations()
-    rotateXY: () => { rotation4DState.xy = !rotation4DState.xy; },
-    rotateXZ: () => { rotation4DState.xz = !rotation4DState.xz; },
-    rotateXW: () => { rotation4DState.xw = !rotation4DState.xw; },
-    rotateYZ: () => { rotation4DState.yz = !rotation4DState.yz; },
-    rotateYW: () => { rotation4DState.yw = !rotation4DState.yw; },
-    rotateZW: () => { rotation4DState.zw = !rotation4DState.zw; },
+    rotateXY: () => { globalRotation4DState.xy = !globalRotation4DState.xy; },
+    rotateXZ: () => { globalRotation4DState.xz = !globalRotation4DState.xz; },
+    rotateXW: () => { globalRotation4DState.xw = !globalRotation4DState.xw; },
+    rotateYZ: () => { globalRotation4DState.yz = !globalRotation4DState.yz; },
+    rotateYW: () => { globalRotation4DState.yw = !globalRotation4DState.yw; },
+    rotateZW: () => { globalRotation4DState.zw = !globalRotation4DState.zw; },
 
     // Homothéties : scaleUp multiplie l'échelle par 1.02, scaleDown la multiplie par 0.98
     scaleUp:   () => { homothetie(globalForme, 1.02); currentScale *= 1.02; },
@@ -192,8 +196,8 @@ function createControlActions() {
       }
 
       globalForme.reset();
-      Object.keys(rotation3DState).forEach(axis => rotation3DState[axis] = false);
-      Object.keys(rotation4DState).forEach(plane => rotation4DState[plane] = false);
+      Object.keys(globalRotation3DState).forEach(axis => globalRotation3DState[axis] = false);
+      Object.keys(globalRotation4DState).forEach(plane => globalRotation4DState[plane] = false);
       globalViewState.facesVisible = true;
       globalViewState.wireVisible  = true;
       globalForme.toggleFaces(true);
@@ -202,7 +206,11 @@ function createControlActions() {
     // Change la forme active et recréé le menu
     switchForme: async (name) => {
       
+      if (globalForme.name === name) return;
+
       globalForme.delete();
+      globalRotation3DState = { x: false, y: false, z: false };
+      globalRotation4DState = { xy: false, xz: false, xw: false, yz: false, yw: false, zw: false };
 
       var newForme;
       switch (name) {
@@ -226,6 +234,7 @@ function createControlActions() {
           try {
             const response = fetch("../data/croix4D.ply"); 
             newForme = await Forme.loadVoxel4DFromPLY(response);
+            newForme.name = name;
             is4D = true;
           } catch (error) {
             console.error("Erreur de chargement PLY:", error);
