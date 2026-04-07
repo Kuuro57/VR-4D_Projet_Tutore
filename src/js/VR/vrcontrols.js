@@ -218,15 +218,15 @@ function createControlActions() {
 
       // Ajout des projections de la forme principale
       if (is4D) {
-          addProjection3D(newForme, 'x', new BABYLON.Vector3(0, 1.6, 5), globalScene);
-          addProjection3D(newForme, 'y', new BABYLON.Vector3(0, 1.6, 5 - (10 / 3)), globalScene);
-          addProjection3D(newForme, 'z', new BABYLON.Vector3(0, 1.6, -5 + (10 / 3)), globalScene);
-          addProjection3D(newForme, 'w', new BABYLON.Vector3(0, 1.6, -5), globalScene);
+          addProjection3D(newForme, 'x', new BABYLON.Vector3(5, 1.6, 5), globalScene);
+          addProjection3D(newForme, 'y', new BABYLON.Vector3(5, 1.6, 5 - (10 / 3)), globalScene);
+          addProjection3D(newForme, 'z', new BABYLON.Vector3(5, 1.6, -5 + (10 / 3)), globalScene);
+          addProjection3D(newForme, 'w', new BABYLON.Vector3(5, 1.6, -5), globalScene);
       }
       else {
-        addProjection2D(newForme, 'x', new BABYLON.Vector3(0, 1.6, 5), globalScene);
-        addProjection2D(newForme, 'y', new BABYLON.Vector3(0, 1.6, 5 - (10 / 3)), globalScene);
-        addProjection2D(newForme, 'z', new BABYLON.Vector3(0, 1.6, -5 + (10 / 3)), globalScene);
+        addProjection2D(newForme, 'x', new BABYLON.Vector3(5, 1.6, 5), globalScene);
+        addProjection2D(newForme, 'y', new BABYLON.Vector3(5, 1.6, 5 - (10 / 3)), globalScene);
+        addProjection2D(newForme, 'z', new BABYLON.Vector3(5, 1.6, -5 + (10 / 3)), globalScene);
       }
 
       globalPanelMesh.dispose();
@@ -534,7 +534,7 @@ function addVRControls() {
 function attachMenuToHand() {
 
   globalPanelMesh.parent   = globalRightMesh;
-  globalPanelMesh.position = new BABYLON.Vector3(0, 0.0, -0.11);
+  globalPanelMesh.position = new BABYLON.Vector3(-0.05, 0.05, 0.035);
   globalPanelMesh.rotation = new BABYLON.Vector3(0, 0, 0);
   globalPanelMesh.setEnabled(true);
 
