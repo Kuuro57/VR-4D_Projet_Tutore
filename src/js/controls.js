@@ -1,6 +1,7 @@
 import { homothetie } from "./transformations/homothetie.js";
 import { rotation3D, rotation4D } from "./transformations/rotations.js";
 import { translation } from "./transformations/translations.js";
+import { globalActions } from "./VR/vrcontrols.js";
 
 
 
@@ -127,6 +128,10 @@ function linkControls (forme) {
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
+                break;
+
+            case 't':
+                globalActions.switchForme("Croix 4D");
                 break;
         };
         

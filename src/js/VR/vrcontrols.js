@@ -200,7 +200,7 @@ function createControlActions() {
       globalForme.toggleWireframe(true);
     },
     // Change la forme active et recréé le menu
-    switchForme: (name) => {
+    switchForme: async (name) => {
       
       globalForme.delete();
 
@@ -213,6 +213,24 @@ function createControlActions() {
         case "Cube": 
           newForme = Forme.loadCubeFromCenter("Cube", new BABYLON.Vector3(0, 0, 0), 1); 
           is4D = false;
+          break;
+        case "HyperSphere":
+          newForme = Forme.loadHyperSphereFromCenter("HyperSphere", new BABYLON.Vector4(0, 1.6, 3, 0), 4, 5);
+          is4D = true;
+          break;
+        case "Pentachore":
+          newForme = Forme.loadPentatopeFromCenter("Pentachore", new BABYLON.Vector4(0, 1.6, 3, 0), 1);
+          is4D = true;
+          break;
+        case "Croix 4D":
+          try {
+            const response = fetch("../data/croix4D.ply"); 
+            newForme = await Forme.loadVoxel4DFromPLY(response);
+            is4D = true;
+          } catch (error) {
+            console.error("Erreur de chargement PLY:", error);
+            return;
+          }
           break;
       }
 
@@ -385,11 +403,12 @@ function initVRControlPanel3D() {
   const addRow = (label, entries) => {
     const row = new BABYLON.GUI.Grid();
     row.height = "70px";
-    row.addColumnDefinition(0.24);
-    row.addColumnDefinition(0.19);
-    row.addColumnDefinition(0.19);
-    row.addColumnDefinition(0.19);
-    row.addColumnDefinition(0.19);
+    row.addColumnDefinition(0.20); 
+    row.addColumnDefinition(0.16);
+    row.addColumnDefinition(0.16);
+    row.addColumnDefinition(0.16);
+    row.addColumnDefinition(0.16);
+    row.addColumnDefinition(0.16);
 
     const labelBlock = new BABYLON.GUI.TextBlock(`${label}-lbl`, label);
     labelBlock.color    = "#F0F0F0";
@@ -443,6 +462,9 @@ function initVRControlPanel3D() {
   addRow("Formes", [
     { text: "Cube",      action: () => { globalActions.switchForme("Cube"); },     type: "simple" },
     { text: "HyperCube", action: () => { globalActions.switchForme("HyperCube"); },     type: "simple" },
+    { text: "HyperSphere", action: () => { globalActions.switchForme("HyperSphere"); },     type: "simple" },
+    { text: "Pentachore", action: () => { globalActions.switchForme("Pentachore"); },     type: "simple" },
+    { text: "Croix 4D", action: () => { globalActions.switchForme("Croix 4D"); },     type: "simple" },
   ]);
 
   return panelMesh;
