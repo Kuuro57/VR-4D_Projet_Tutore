@@ -44,3 +44,23 @@ KHODJAOUI Elias
 - Affichage d'un cube en VR
 
 - Coloration des faces pour meilleure visibilité
+
+
+## Itération 4 :
+
+
+- Gestion des fichiers PLY (lecture et écriture)
+
+- Ebauche du "Hand Menu"
+
+
+## Itération 5 :
+
+
+- Projections 3D d'une forme 4D en VR
+
+- Menu textuel "Hand Menu" opérationnel
+
+- Optimisation de l'affichage *(principalement pour l'hypershpère)*
+
+- Génération de voxels 4D
