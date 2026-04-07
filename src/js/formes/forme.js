@@ -677,6 +677,8 @@ class Forme {
             allFaces.push(...cube.faces);
         });
 
+        allSommets.forEach(s => { s.initialVector = s.vector.clone(); });
+
         return new Forme(name, allSommets, allAretes, allFaces);
     }
 
