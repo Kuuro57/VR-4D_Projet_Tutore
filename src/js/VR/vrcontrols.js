@@ -446,8 +446,7 @@ function initVRControlPanel3D() {
       { text: "Y", action: globalActions.rotateY, type: "toggleDesactive" },
       { text: "Z", action: globalActions.rotateZ, type: "toggleDesactive" },
     ]);
-  }
-  else {
+  } else {
     addRow("Rotations", [
       { text: "XY", action: globalActions.rotateXY, type: "toggleDesactive" },
       { text: "XZ", action: globalActions.rotateXZ, type: "toggleDesactive" },
@@ -457,7 +456,7 @@ function initVRControlPanel3D() {
       { text: "YZ", action: globalActions.rotateYZ, type: "toggleDesactive" },
       { text: "YW", action: globalActions.rotateYW, type: "toggleDesactive" },
       { text: "ZW", action: globalActions.rotateZW, type: "toggleDesactive" },
-    ])
+    ]);
   }
 
   addRow("Homothetie", [
@@ -473,11 +472,11 @@ function initVRControlPanel3D() {
     }, type: "simple" },
   ]);
   addRow("Formes", [
-    { text: "Cube",      action: () => { globalActions.switchForme("Cube"); },     type: "simple" },
-    { text: "HyperCube", action: () => { globalActions.switchForme("HyperCube"); },     type: "simple" },
-    { text: "HyperSphere", action: () => { globalActions.switchForme("HyperSphere"); },     type: "simple" },
-    { text: "Pentachore", action: () => { globalActions.switchForme("Pentachore"); },     type: "simple" },
-    { text: "Croix 4D", action: () => { globalActions.switchForme("Croix 4D"); },     type: "simple" },
+    { text: "Cube",        action: () => { globalActions.switchForme("Cube");        }, type: "simple" },
+    { text: "HyperCube",   action: () => { globalActions.switchForme("HyperCube");   }, type: "simple" },
+    { text: "HyperSphere", action: () => { globalActions.switchForme("HyperSphere"); }, type: "simple" },
+    { text: "Pentachore",  action: () => { globalActions.switchForme("Pentachore");  }, type: "simple" },
+    { text: "Croix 4D",    action: () => { globalActions.switchForme("Croix 4D");    }, type: "simple" },
   ]);
 
   const rowMain = new BABYLON.GUI.Grid();
