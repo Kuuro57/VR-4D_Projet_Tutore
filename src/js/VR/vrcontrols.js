@@ -473,7 +473,7 @@ function initVRControlPanel3D() {
   const labelMain = new BABYLON.GUI.TextBlock("main-lbl", "Main");
   labelMain.color     = "#F0F0F0";
   labelMain.fontSize  = 22;
-  labelMain.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+  labelMain.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
   rowMain.addControl(labelMain, 0, 0);
 
   const btnMain = BABYLON.GUI.Button.CreateSimpleButton("btn-main", globalMenuSide === "right" ? "Droite" : "Gauche");
@@ -587,7 +587,11 @@ function attachMenuToHand() {
   if (!targetMesh) return;
 
   globalPanelMesh.parent   = targetMesh;
-  globalPanelMesh.position = new BABYLON.Vector3(-0.05, 0.05, 0.035);
+  globalPanelMesh.position = new BABYLON.Vector3(
+    globalMenuSide === "left" ? 0.05 : -0.05,
+    0.05,
+    0.035
+  );
   globalPanelMesh.rotation = new BABYLON.Vector3(0, 0, 0);
   globalPanelMesh.setEnabled(true);
 }
