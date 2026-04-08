@@ -27,6 +27,9 @@ var globalXR;
 // État d'affichage partagé
 var globalViewState;
 
+// Côté d'attachement du menu
+var globalMenuSide = "right";
+
 // Camera principale
 var globalCamera;
 
@@ -477,9 +480,6 @@ function initVRControlPanel3D() {
     { text: "Croix 4D", action: () => { globalActions.switchForme("Croix 4D"); },     type: "simple" },
   ]);
 
-  // Variable locale pour suivre le côté actif
-  let menuSide = "right";
-
   const rowMain = new BABYLON.GUI.Grid();
   rowMain.height = "70px";
   rowMain.addColumnDefinition(0.20);
@@ -497,7 +497,7 @@ function initVRControlPanel3D() {
   rowMain.addControl(labelMain, 0, 0);
 
   // Bouton toggle Droite / Gauche
-  const btnMain = BABYLON.GUI.Button.CreateSimpleButton("btn-main", "Droite");
+  const btnMain = BABYLON.GUI.Button.CreateSimpleButton("btn-main", globalMenuSide === "right" ? "Droite" : "Gauche");
   btnMain.height       = "52px";
   btnMain.width        = "95%";
   btnMain.cornerRadius = 10;
@@ -506,9 +506,9 @@ function initVRControlPanel3D() {
   btnMain.color        = "white";
   btnMain.fontSize     = 20;
   btnMain.onPointerUpObservable.add(() => {
-    menuSide = menuSide === "right" ? "left" : "right";
-    btnMain.textBlock.text = menuSide === "right" ? "Droite" : "Gauche";
-    attachMenuToHand(menuSide);
+    globalMenuSide = globalMenuSide === "right" ? "left" : "right";
+    btnMain.textBlock.text = globalMenuSide === "right" ? "Droite" : "Gauche";
+    attachMenuToHand(globalMenuSide);
   });
   rowMain.addControl(btnMain, 0, 1);
 
@@ -603,8 +603,8 @@ function addVRControls() {
 /**
  * Attache le menu de contrôle à la main droite
  */
-function attachMenuToHand(side = "right") {
-  const targetMesh = side === "left" ? globalLeftMesh : globalRightMesh;
+function attachMenuToHand() {
+  const targetMesh = globalMenuSide === "left" ? globalLeftMesh : globalRightMesh;
   if (!targetMesh) return;
 
   globalPanelMesh.parent   = targetMesh;
