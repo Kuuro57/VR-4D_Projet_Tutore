@@ -590,7 +590,7 @@ function attachMenuToHand() {
   globalPanelMesh.position = new BABYLON.Vector3(
     globalMenuSide === "left" ? 0.02 : -0.02,
     0.02,
-    globalMenuSide === "left" ? -0.035 : 0.035
+    globalMenuSide === "left" ? -0.025 : 0.035
   );
   globalPanelMesh.rotation = new BABYLON.Vector3(0, 0, 0);
   globalPanelMesh.setEnabled(true);
