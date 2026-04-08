@@ -131,7 +131,7 @@ function linkControls (forme) {
                 break;
 
             case 't':
-                globalActions.switchForme("Croix 4D");
+                globalActions.switchForme("HyperSphere");
                 break;
         };
         

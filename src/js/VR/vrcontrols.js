@@ -223,7 +223,7 @@ function createControlActions() {
           is4D = false;
           break;
         case "HyperSphere":
-          newForme = Forme.loadHyperSphereFromCenter("HyperSphere", new BABYLON.Vector4(0, 1.6, 3, 0), 4, 5);
+          newForme = Forme.loadHyperSphereFromCenter("HyperSphere", new BABYLON.Vector4(0, 1.6, 3, 0), 4, 6);
           is4D = true;
           break;
         case "Pentachore":
@@ -249,6 +249,10 @@ function createControlActions() {
           addProjection3D(newForme, 'y', new BABYLON.Vector3(5, 1.6, 5 - (10 / 3)), globalScene);
           addProjection3D(newForme, 'z', new BABYLON.Vector3(5, 1.6, -5 + (10 / 3)), globalScene);
           addProjection3D(newForme, 'w', new BABYLON.Vector3(5, 1.6, -5), globalScene);
+
+          if (name === "HyperSphere" || name === "Croix 4D") {
+              newForme.toggleWireframe(false);
+          }
       }
       else {
         addProjection2D(newForme, 'x', new BABYLON.Vector3(5, 1.6, 5), globalScene);

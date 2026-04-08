@@ -563,6 +563,40 @@ class Forme {
             }
         }
 
+        // Faces : quads entre sommets adjacents sur chaque paire d'axes
+        for (let k = 0; k < segments; k++) {
+            for (let i = 0; i < segments; i++) {
+                for (let j = 0; j < segments; j++) {
+                    // Face phi-theta (k fixé)
+                    hypersphere.faces.push(new FaceCarre(
+                        `Fpt_${k}_${i}_${j}`,
+                        grid[k][i][j],
+                        grid[k][i][j + 1],
+                        grid[k][i + 1][j + 1],
+                        grid[k][i + 1][j]
+                    ));
+
+                    // Face phi-chi (i fixé)
+                    hypersphere.faces.push(new FaceCarre(
+                        `Fpc_${k}_${i}_${j}`,
+                        grid[k][i][j],
+                        grid[k][i][j + 1],
+                        grid[k + 1][i][j + 1],
+                        grid[k + 1][i][j]
+                    ));
+
+                    // Face theta-chi (j fixé)
+                    hypersphere.faces.push(new FaceCarre(
+                        `Ftc_${k}_${i}_${j}`,
+                        grid[k][i][j],
+                        grid[k + 1][i][j],
+                        grid[k + 1][i + 1][j],
+                        grid[k][i + 1][j]
+                    ));
+                }
+            }
+        }
+
         translation(hypersphere, center);
 
         return hypersphere;
