@@ -278,15 +278,13 @@ function createControlActions() {
  */
 function initVRControlPanel3D() {
 
-  const nbRotationRows = is4D ? 2 : 1;
-  const totalRows      = nbRotationRows + 4; // + Homothetie, Affichage, Formes, Main
-  const textureH       = 44 + totalRows * 80 + 20; // titre + lignes + marges
-  const textureW       = 1200;
-  const meshHeight     = 0.4 * (textureH / textureW);
+  const textureW   = 1200;
+  const textureH   = 544;
+  const meshHeight = 0.4 * (textureH / textureW);
 
   var panelMesh = BABYLON.MeshBuilder.CreatePlane(
     "vr-controls-panel",
-    { width: 0.4, height: meshHeight, sideOrientation: BABYLON.Mesh.FRONTSIDE }, // ← hauteur dynamique
+    { width: 0.4, height: meshHeight, sideOrientation: BABYLON.Mesh.FRONTSIDE },
     globalScene
   );
 
@@ -298,7 +296,6 @@ function initVRControlPanel3D() {
   const texture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(
     panelMesh, textureW, textureH, false
   );
-
 
   const root = new BABYLON.GUI.Rectangle("panel-root");
   root.width        = "100%";
@@ -325,16 +322,7 @@ function initVRControlPanel3D() {
 
   const holdIntervals = new Map();
   const toggleVisualResets = [];
-  
-  /**
-  * Crée un bouton qui déclenche l'action immédiatement au pointerDown,
-  * puis la répète toutes les 100 ms tant qu'il est maintenu.
-  * Utilisé pour les translations et l'échelle.
-  * @param {BABYLON.GUI.Grid} parent - Conteneur Grid auquel ajouter le bouton
-  * @param {number} col - Index de colonne dans le Grid parent
-  * @param {string} label - Texte affiché sur le bouton
-  * @param {function} action - Callback déclenché en boucle tant que le bouton est maintenu
-  */
+
   const addRepeatableButton = (parent, col, label, action) => {
     const button = BABYLON.GUI.Button.CreateSimpleButton(label, label);
     button.height       = "52px";
@@ -358,15 +346,6 @@ function initVRControlPanel3D() {
     parent.addControl(button, 0, col);
   };
 
-  /**
-   * Crée un bouton qui change de couleur à chaque clic (vert actif / gris inactif).
-   * Son état visuel est mémorisé dans toggleVisualResets pour être remis à zéro par le bouton Reset.
-   * @param {BABYLON.GUI.Grid} parent - Conteneur Grid auquel ajouter le bouton
-   * @param {number} col - Index de colonne dans le Grid parent
-   * @param {string} label - Texte affiché sur le bouton
-   * @param {function} action - Callback déclenché au clic
-   * @param {boolean} initActive - État visuel initial (true = vert, false = gris)
-   */
   const addToggleButton = (parent, col, label, action, initActive) => {
     const button = BABYLON.GUI.Button.CreateSimpleButton(label, label);
     button.height       = "52px";
@@ -385,22 +364,13 @@ function initVRControlPanel3D() {
     });
 
     toggleVisualResets.push(() => {
-      
       active = initActive;
       button.background = initActive ? "#1a6b3a" : "#2A2A2A";
-      
     });
-    
+
     parent.addControl(button, 0, col);
   };
 
-  /**
-   * Crée un bouton classique à action unique au pointerUp.
-   * @param {BABYLON.GUI.Grid} parent - Conteneur Grid auquel ajouter le bouton
-   * @param {number} col - Index de colonne dans le Grid parent
-   * @param {string} label - Texte affiché sur le bouton
-   * @param {function} action - Callback déclenché au relâchement du bouton
-   */
   const addSimpleButton = (parent, col, label, action) => {
     const button = BABYLON.GUI.Button.CreateSimpleButton(label, label);
     button.height       = "52px";
@@ -414,16 +384,10 @@ function initVRControlPanel3D() {
     parent.addControl(button, 0, col);
   };
 
-  /**
-  * Construit une ligne du panneau avec un label à gauche et jusqu'à 4 boutons à droite.
-  * Chaque entrée précise son type et l'action associée.
-  * @param {string} label - Texte affiché à gauche de la ligne
-  * @param {Array<{text: string, action: function, type?: string}>} entries - Boutons à créer (type : "toggleActive" | "toggleDesactive" | "simple" | undefined pour répétable)
-  */
   const addRow = (label, entries) => {
     const row = new BABYLON.GUI.Grid();
     row.height = "70px";
-    row.addColumnDefinition(0.20); 
+    row.addColumnDefinition(0.20);
     row.addColumnDefinition(0.16);
     row.addColumnDefinition(0.16);
     row.addColumnDefinition(0.16);
@@ -438,38 +402,48 @@ function initVRControlPanel3D() {
 
     entries.forEach((entry, i) => {
       if (!entry) return;
-      if (entry.type === "toggleActive")           addToggleButton(row, i + 1, entry.text, entry.action, true);
-      else if (entry.type === "toggleDesactive")   addToggleButton(row, i + 1, entry.text, entry.action, false);
-      else if (entry.type === "simple")            addSimpleButton(row, i + 1, entry.text, entry.action);
-      else                                         addRepeatableButton(row, i + 1, entry.text, entry.action);
+      if (entry.type === "toggleActive")         addToggleButton(row, i + 1, entry.text, entry.action, true);
+      else if (entry.type === "toggleDesactive") addToggleButton(row, i + 1, entry.text, entry.action, false);
+      else if (entry.type === "simple")          addSimpleButton(row, i + 1, entry.text, entry.action);
+      else                                       addRepeatableButton(row, i + 1, entry.text, entry.action);
     });
 
     layout.addControl(row);
+    return row; // ← permet de récupérer la référence pour modifier isVisible et height
   };
 
-  if (!is4D) {
-    addRow("Rotations", [
-      { text: "X", action: globalActions.rotateX, type: "toggleDesactive" },
-      { text: "Y", action: globalActions.rotateY, type: "toggleDesactive" },
-      { text: "Z", action: globalActions.rotateZ, type: "toggleDesactive" },
-    ]);
-  } else {
-    addRow("Rotations", [
-      { text: "XY", action: globalActions.rotateXY, type: "toggleDesactive" },
-      { text: "XZ", action: globalActions.rotateXZ, type: "toggleDesactive" },
-      { text: "XW", action: globalActions.rotateXW, type: "toggleDesactive" },
-    ]);
-    addRow("Rotations", [
-      { text: "YZ", action: globalActions.rotateYZ, type: "toggleDesactive" },
-      { text: "YW", action: globalActions.rotateYW, type: "toggleDesactive" },
-      { text: "ZW", action: globalActions.rotateZW, type: "toggleDesactive" },
-    ]);
-  }
+  // Ligne rotation 3D — visible uniquement si la forme est en 3D
+  const rowRot3D = addRow("Rotations", [
+    { text: "X",  action: globalActions.rotateX, type: "toggleDesactive" },
+    { text: "Y",  action: globalActions.rotateY, type: "toggleDesactive" },
+    { text: "Z",  action: globalActions.rotateZ, type: "toggleDesactive" },
+  ]);
+  rowRot3D.isVisible = !is4D;
+  rowRot3D.height    = is4D ? "0px" : "70px";
+
+  // Ligne rotation 4D n°1 — visible uniquement si la forme est en 4D
+  const rowRot4D_1 = addRow("Rotations", [
+    { text: "XY", action: globalActions.rotateXY, type: "toggleDesactive" },
+    { text: "XZ", action: globalActions.rotateXZ, type: "toggleDesactive" },
+    { text: "XW", action: globalActions.rotateXW, type: "toggleDesactive" },
+  ]);
+  rowRot4D_1.isVisible = is4D;
+  rowRot4D_1.height    = is4D ? "70px" : "0px";
+
+  // Ligne rotation 4D n°2 — visible uniquement si la forme est en 4D
+  const rowRot4D_2 = addRow("Rotations", [
+    { text: "YZ", action: globalActions.rotateYZ, type: "toggleDesactive" },
+    { text: "YW", action: globalActions.rotateYW, type: "toggleDesactive" },
+    { text: "ZW", action: globalActions.rotateZW, type: "toggleDesactive" },
+  ]);
+  rowRot4D_2.isVisible = is4D;
+  rowRot4D_2.height    = is4D ? "70px" : "0px";
 
   addRow("Homothetie", [
     { text: "+", action: globalActions.scaleUp   },
     { text: "-", action: globalActions.scaleDown },
   ]);
+
   addRow("Affichage", [
     { text: "Faces",     action: globalActions.toggleFaces,     type: "toggleActive" },
     { text: "Wireframe", action: globalActions.toggleWireframe, type: "toggleActive" },
@@ -478,6 +452,7 @@ function initVRControlPanel3D() {
         toggleVisualResets.forEach(resetUI => resetUI());
     }, type: "simple" },
   ]);
+
   addRow("Formes", [
     { text: "Cube",        action: () => { globalActions.switchForme("Cube");        }, type: "simple" },
     { text: "HyperCube",   action: () => { globalActions.switchForme("HyperCube");   }, type: "simple" },
@@ -495,20 +470,18 @@ function initVRControlPanel3D() {
   rowMain.addColumnDefinition(0.16);
   rowMain.addColumnDefinition(0.16);
 
-  // Label aligné à DROITE pour le distinguer
   const labelMain = new BABYLON.GUI.TextBlock("main-lbl", "Main");
   labelMain.color     = "#F0F0F0";
   labelMain.fontSize  = 22;
-  labelMain.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT; // ← droite
+  labelMain.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
   rowMain.addControl(labelMain, 0, 0);
 
-  // Bouton toggle Droite / Gauche
   const btnMain = BABYLON.GUI.Button.CreateSimpleButton("btn-main", globalMenuSide === "right" ? "Droite" : "Gauche");
   btnMain.height       = "52px";
   btnMain.width        = "95%";
   btnMain.cornerRadius = 10;
   btnMain.thickness    = 1;
-  btnMain.background   = "#1a3a6b";   // bleu distinct des autres boutons
+  btnMain.background   = "#1a3a6b";
   btnMain.color        = "white";
   btnMain.fontSize     = 20;
   btnMain.onPointerUpObservable.add(() => {
