@@ -278,9 +278,15 @@ function createControlActions() {
  */
 function initVRControlPanel3D() {
 
+  const nbRotationRows = is4D ? 2 : 1;
+  const totalRows      = nbRotationRows + 4; // + Homothetie, Affichage, Formes, Main
+  const textureH       = 44 + totalRows * 80 + 20; // titre + lignes + marges
+  const textureW       = 1200;
+  const meshHeight     = 0.4 * (textureH / textureW);
+
   var panelMesh = BABYLON.MeshBuilder.CreatePlane(
     "vr-controls-panel",
-    { width: 0.4, height: 0.2625, sideOrientation: BABYLON.Mesh.FRONTSIDE },
+    { width: 0.4, height: meshHeight, sideOrientation: BABYLON.Mesh.FRONTSIDE }, // ← hauteur dynamique
     globalScene
   );
 
@@ -290,8 +296,9 @@ function initVRControlPanel3D() {
   panelMesh.setEnabled(false);
 
   const texture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(
-    panelMesh, 1200, 475, false
+    panelMesh, textureW, textureH, false
   );
+
 
   const root = new BABYLON.GUI.Rectangle("panel-root");
   root.width        = "100%";
